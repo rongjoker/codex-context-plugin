@@ -1,0 +1,1854 @@
+{
+ "panel": {
+  "content": [
+   {
+    "type": "text",
+    "text": "Thread \"Plan the onboarding redesign\" (gpt-6.1-sol): 67K of 258K context in use, 1 compaction.\nFixed 36.6K: tools & protocol 18.2K, skills catalog 5.2K x2, system prompt 4.2K, AGENTS.md 2.3K. Conversation 30.4K.\nAGENTS.md: 3 files loaded, project files 8 KB of 8 KB; desktop-panel/AGENTS.override.md truncated; AGENTS.md changed since loaded.\nSkills catalog: 40 skills, 5,246 of 5,440 budget units; tidy-prose listed twice."
+   }
+  ],
+  "structuredContent": {
+   "view": "panel",
+   "thread": {
+    "id": "01a0c0de-5eed-7ca7-8bee-000000000042",
+    "title": "Plan the onboarding redesign",
+    "cwd": "/Users/demo/Projects/Demo",
+    "model": "gpt-6.1-sol",
+    "isCurrent": true
+   },
+   "contextWindow": 258400,
+   "exactTokens": true,
+   "start": {
+    "inputTokens": 31618,
+    "blocks": [
+     {
+      "key": "system",
+      "label": "System prompt",
+      "tokens": 4212,
+      "copies": 1
+     },
+     {
+      "key": "skills",
+      "label": "Skills catalog",
+      "tokens": 5222,
+      "copies": 1
+     },
+     {
+      "key": "agents",
+      "label": "AGENTS.md",
+      "tokens": 2282,
+      "copies": 1
+     },
+     {
+      "key": "permissions",
+      "label": "Permissions",
+      "tokens": 486,
+      "copies": 1
+     },
+     {
+      "key": "app",
+      "label": "App context",
+      "tokens": 312,
+      "copies": 1
+     },
+     {
+      "key": "collaboration",
+      "label": "Collaboration mode",
+      "tokens": 274,
+      "copies": 1
+     },
+     {
+      "key": "plugins",
+      "label": "Plugins",
+      "tokens": 214,
+      "copies": 1
+     },
+     {
+      "key": "environment",
+      "label": "Environment",
+      "tokens": 148,
+      "copies": 1
+     }
+    ],
+    "userTokens": 268,
+    "toolsTokens": 18200
+   },
+   "now": {
+    "inputTokens": 67012,
+    "blocks": [
+     {
+      "key": "system",
+      "label": "System prompt",
+      "tokens": 4212,
+      "copies": 1
+     },
+     {
+      "key": "skills",
+      "label": "Skills catalog",
+      "tokens": 5222,
+      "copies": 2
+     },
+     {
+      "key": "agents",
+      "label": "AGENTS.md",
+      "tokens": 2282,
+      "copies": 1
+     },
+     {
+      "key": "permissions",
+      "label": "Permissions",
+      "tokens": 486,
+      "copies": 1
+     },
+     {
+      "key": "app",
+      "label": "App context",
+      "tokens": 312,
+      "copies": 1
+     },
+     {
+      "key": "collaboration",
+      "label": "Collaboration mode",
+      "tokens": 274,
+      "copies": 1
+     },
+     {
+      "key": "plugins",
+      "label": "Plugins",
+      "tokens": 214,
+      "copies": 1
+     },
+     {
+      "key": "environment",
+      "label": "Environment",
+      "tokens": 148,
+      "copies": 1
+     }
+    ],
+    "toolsTokens": 18200,
+    "conversationTokens": 30440,
+    "compactions": 1
+   },
+   "agents": {
+    "files": [
+     {
+      "path": "/Users/demo/.codex/AGENTS.md",
+      "display": "~/.codex/AGENTS.md",
+      "scope": "global",
+      "kind": "AGENTS.md",
+      "status": "full",
+      "shadowedBy": null,
+      "tokens": 262,
+      "fileTokens": 262,
+      "bytes": 1090,
+      "lines": 21,
+      "changedSinceLoaded": false
+     },
+     {
+      "path": "/Users/demo/Projects/Demo/AGENTS.md",
+      "display": "AGENTS.md",
+      "scope": "project",
+      "kind": "AGENTS.md",
+      "status": "full",
+      "shadowedBy": null,
+      "tokens": 1106,
+      "fileTokens": 1379,
+      "bytes": 5702,
+      "lines": 118,
+      "changedSinceLoaded": true
+     },
+     {
+      "path": "/Users/demo/Projects/Demo/CLAUDE.md",
+      "display": "CLAUDE.md",
+      "scope": "project",
+      "kind": "fallback",
+      "status": "shadowed",
+      "shadowedBy": "AGENTS.md",
+      "tokens": 0,
+      "fileTokens": 402,
+      "bytes": 1610,
+      "lines": 38,
+      "changedSinceLoaded": false
+     },
+     {
+      "path": "/Users/demo/Projects/Demo/packages/onboarding/apps/web/AGENTS.override.md",
+      "display": "packages/onboarding/apps/web/AGENTS.override.md",
+      "scope": "project",
+      "kind": "AGENTS.override.md",
+      "status": "truncated",
+      "shadowedBy": null,
+      "tokens": 880,
+      "fileTokens": 3050,
+      "bytes": 12650,
+      "lines": 311,
+      "changedSinceLoaded": false
+     }
+    ],
+    "projectRoot": "/Users/demo/Projects/Demo",
+    "projectBytes": 8192,
+    "projectBudget": 8192,
+    "loadedTokens": 2282
+   },
+   "skills": {
+    "entries": [
+     {
+      "name": "launchpad:release-checklist",
+      "plugin": "launchpad",
+      "description": "Walks a release from frozen main to published tag: changelog, version bump, store notes, smoke tests and the post-release tweet. Use when the user says ship it, cut a release, prepare a launch, or asks what is left before releasing. Covers npm, PyPI, crates.io, the App Store and a heroic amount of YAML. Asks before pushing tags, publishing packages or posting anywhere public, and keeps a rollback note ready in case the launch sequence needs to be aborted at T-minus five minutes. Reads the project's own conventions first and follows them over its defaults. Prefers small, reviewable diffs and explains each change in one line.",
+      "tokens": 190,
+      "units": 192,
+      "path": null
+     },
+     {
+      "name": "launchpad:changelog-writer",
+      "plugin": "launchpad",
+      "description": "Turns a pile of merged pull requests into a changelog people actually read: groups by feature, fix and chore, drops bot noise, links issues, and writes one plain sentence per change. Use when the user asks for release notes, a changelog entry, a what's-new post or a summary of everything since the last tag. Never invents changes that are not in the git history. Asks before deleting files, rewriting history or touching anything outside the workspace.",
+      "tokens": 146,
+      "units": 147,
+      "path": null
+     },
+     {
+      "name": "launchpad:version-bumper",
+      "plugin": "launchpad",
+      "description": "Bumps versions consistently across package.json, lockfiles, manifests and docs, following semver from the change list. Use when the user asks to bump, tag or set a version, or when a release checklist reaches the versioning step. Works offline and never sends project files to third-party services. Leaves a short summary of what it changed and what it deliberately left alone.",
+      "tokens": 126,
+      "units": 127,
+      "path": null
+     },
+     {
+      "name": "launchpad:store-screenshots",
+      "plugin": "launchpad",
+      "description": "Plans and captures App Store and Play Store screenshots at every required size, with captions that fit and a consistent device frame. Use when the user prepares a store listing, updates marketing screenshots or asks which sizes are required this year. Stops and asks when the request is ambiguous instead of guessing at scope.",
+      "tokens": 114,
+      "units": 116,
+      "path": null
+     },
+     {
+      "name": "pixel-forge:sprite-sheet-builder",
+      "plugin": "pixel-forge",
+      "description": "Packs loose PNG frames into sprite sheets with a JSON atlas, trims transparent edges, keeps animations in order and flags frames that changed size between versions. Use when the user works on 2D game art, asks to pack sprites, build an atlas or fix a jittering animation. Supports Aseprite exports, TexturePacker-style JSON and plain grids, and explains the memory cost of each sheet before writing it. Keeps output short by default and expands only when the user asks for detail. Includes a checklist the user can rerun later without the skill. Handles monorepos by working in the package the user is in, not the whole tree.",
+      "tokens": 191,
+      "units": 193,
+      "path": null
+     },
+     {
+      "name": "pixel-forge:palette-picker",
+      "plugin": "pixel-forge",
+      "description": "Builds limited color palettes for pixel art from a mood, a reference image or a console era, and checks contrast for UI text. Use when the user asks for a palette, a color ramp or a retro look. Knows the common pitfalls on macOS, Linux and Windows and says which one applies. Adds tests for anything it fixes so the same bug cannot quietly come back. Uses the project's formatter and linter settings rather than its own taste. Links to the exact files and lines it relied on so claims are easy to verify. Treats secrets, tokens and customer data as off limits and never prints them.",
+      "tokens": 178,
+      "units": 179,
+      "path": null
+     },
+     {
+      "name": "pixel-forge:shader-sandbox",
+      "plugin": "pixel-forge",
+      "description": "Sets up a tiny WebGL playground for fragment shaders with hot reload, uniforms for time and mouse, and a gallery of starter effects: CRT scanlines, water ripples, dithering and a very tasteful amount of bloom. Use when the user wants to experiment with shaders, port a Shadertoy snippet, or debug why everything renders black. Explains each uniform and keeps the math commented so the next person survives it. Measures before and after whenever a change claims to make something faster or smaller.",
+      "tokens": 156,
+      "units": 158,
+      "path": null
+     },
+     {
+      "name": "pixel-forge:retro-font-kit",
+      "plugin": "pixel-forge",
+      "description": "Converts bitmap fonts into web fonts and game-engine font atlases, with kerning tables and a preview page. Use when the user needs a pixel font in a game or on the web. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults.",
+      "tokens": 153,
+      "units": 155,
+      "path": null
+     },
+     {
+      "name": "coffee-ops:brew-planner",
+      "plugin": "coffee-ops",
+      "description": "Plans the team's coffee supply like an on-call rotation: who brews, when beans run out, and which machine needs descaling. Use when the user mentions coffee logistics, office supplies for caffeine, or asks why the kitchen is out of oat milk again. Prefers small, reviewable diffs and explains each change in one line. Asks before deleting files, rewriting history or touching anything outside the workspace. Works offline and never sends project files to third-party services.",
+      "tokens": 150,
+      "units": 151,
+      "path": null
+     },
+     {
+      "name": "coffee-ops:bean-inventory",
+      "plugin": "coffee-ops",
+      "description": "Tracks bean bags, roast dates and grind settings in a small JSON file and warns before anything goes stale. Use when the user logs a new bag or asks what to brew next. Leaves a short summary of what it changed and what it deliberately left alone. Stops and asks when the request is ambiguous instead of guessing at scope.",
+      "tokens": 112,
+      "units": 113,
+      "path": null
+     },
+     {
+      "name": "coffee-ops:latte-art-review",
+      "plugin": "coffee-ops",
+      "description": "Reviews photos of latte art with the seriousness of a code review: symmetry, contrast, milk texture and one kind suggestion per cup. Use when the user shares latte art or asks for feedback on their pour. Keeps output short by default and expands only when the user asks for detail. Includes a checklist the user can rerun later without the skill. Handles monorepos by working in the package the user is in, not the whole tree.",
+      "tokens": 139,
+      "units": 141,
+      "path": null
+     },
+     {
+      "name": "space-cats:orbit-debugger",
+      "plugin": "space-cats",
+      "description": "Debugs orbital mechanics code in games and simulations: energy drift, exploding integrators, time-step bugs and cats that refuse to stay in orbit. Use when the user's physics simulation behaves strangely, bodies fly off to infinity, or a planet quietly eats its moon. Compares Euler, Verlet and RK4 on the user's own scene and plots the energy error so the fix is visible, not just claimed. Knows the common pitfalls on macOS, Linux and Windows and says which one applies. Adds tests for anything it fixes so the same bug cannot quietly come back. Uses the project's formatter and linter settings rather than its own taste. Links to the exact files and lines it relied on so claims are easy to verify. Treats secrets, tokens and customer data as off limits and never prints them.",
+      "tokens": 226,
+      "units": 228,
+      "path": null
+     },
+     {
+      "name": "space-cats:zero-g-refactor",
+      "plugin": "space-cats",
+      "description": "Refactors tangled code by floating responsibilities apart until each module has one job, then lands them gently with tests. Use when the user asks for a refactor, a module split or a cleanup of a god object. Measures before and after whenever a change claims to make something faster or smaller. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults.",
+      "tokens": 185,
+      "units": 186,
+      "path": null
+     },
+     {
+      "name": "space-cats:hairball-triage",
+      "plugin": "space-cats",
+      "description": "Triages a messy issue tracker: merges duplicates, labels by area, closes the stale ones politely and surfaces the three bugs that actually hurt users. Use when the user asks to clean up issues, triage a backlog or find what to fix first. Prefers small, reviewable diffs and explains each change in one line. Asks before deleting files, rewriting history or touching anything outside the workspace. Works offline and never sends project files to third-party services. Leaves a short summary of what it changed and what it deliberately left alone.",
+      "tokens": 168,
+      "units": 170,
+      "path": null
+     },
+     {
+      "name": "tidy-prose",
+      "plugin": null,
+      "description": "Edits prose for clarity and rhythm without changing its meaning: shorter sentences, fewer filler words, no marketing voice. Use when the user asks to polish, tighten or proofread text.",
+      "tokens": 63,
+      "units": 64,
+      "path": null
+     },
+     {
+      "name": "tidy-prose",
+      "plugin": null,
+      "description": "Edits prose for clarity and rhythm without changing its meaning: shorter sentences, fewer filler words, no marketing voice. Use when the user asks to polish, tighten or proofread text.",
+      "tokens": 63,
+      "units": 64,
+      "path": null
+     },
+     {
+      "name": "commit-poet",
+      "plugin": null,
+      "description": "Writes conventional commit messages from the staged diff: a precise subject line, a short body that explains why, and no poetry despite the name. Use when the user asks for a commit message or wants to commit. Stops and asks when the request is ambiguous instead of guessing at scope.",
+      "tokens": 88,
+      "units": 89,
+      "path": null
+     },
+     {
+      "name": "flaky-test-hunter",
+      "plugin": null,
+      "description": "Finds flaky tests by rerunning suspects with different seeds and timings, then explains the race, the shared state or the sleeping test that caused it. Use when tests pass locally and fail in CI, or fail one run in ten. Produces a minimal reproduction and a fix that does not involve adding another retry. Keeps output short by default and expands only when the user asks for detail. Includes a checklist the user can rerun later without the skill.",
+      "tokens": 132,
+      "units": 133,
+      "path": null
+     },
+     {
+      "name": "yak-shaver",
+      "plugin": null,
+      "description": "Notices when a task has drifted three layers away from the original goal and proposes the shortest way back. Use when the user says they just need to fix one tiny thing first. Handles monorepos by working in the package the user is in, not the whole tree. Knows the common pitfalls on macOS, Linux and Windows and says which one applies. Adds tests for anything it fixes so the same bug cannot quietly come back. Uses the project's formatter and linter settings rather than its own taste. Links to the exact files and lines it relied on so claims are easy to verify.",
+      "tokens": 158,
+      "units": 159,
+      "path": null
+     },
+     {
+      "name": "rubber-duck",
+      "plugin": null,
+      "description": "Listens to a problem explained step by step and asks one clarifying question at a time until the bug becomes obvious. Use when the user wants to think out loud or is stuck. Treats secrets, tokens and customer data as off limits and never prints them. Measures before and after whenever a change claims to make something faster or smaller.",
+      "tokens": 101,
+      "units": 103,
+      "path": null
+     },
+     {
+      "name": "regex-whisperer",
+      "plugin": null,
+      "description": "Writes, explains and tests regular expressions with examples that match and examples that must not. Use when the user needs a regex or inherited one nobody understands. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults.",
+      "tokens": 140,
+      "units": 141,
+      "path": null
+     },
+     {
+      "name": "emoji-police",
+      "plugin": null,
+      "description": "Removes decorative emoji from docs, commit messages and UI copy while keeping the ones that carry meaning. Use when the user asks to clean up copy or make text more professional. Prefers small, reviewable diffs and explains each change in one line.",
+      "tokens": 80,
+      "units": 81,
+      "path": null
+     },
+     {
+      "name": "meeting-to-todo",
+      "plugin": null,
+      "description": "Turns meeting notes into a short list of owners, actions and dates, and drops everything that was only discussed. Use when the user pastes notes or a transcript and asks for next steps. Asks before deleting files, rewriting history or touching anything outside the workspace. Works offline and never sends project files to third-party services. Leaves a short summary of what it changed and what it deliberately left alone. Stops and asks when the request is ambiguous instead of guessing at scope.",
+      "tokens": 143,
+      "units": 145,
+      "path": null
+     },
+     {
+      "name": "readme-polisher",
+      "plugin": null,
+      "description": "Restructures a README so a newcomer can install, run and understand the project in five minutes: what it is, quick start, configuration, and where to get help. Use when the user asks to improve docs or write a README. Keeps output short by default and expands only when the user asks for detail. Includes a checklist the user can rerun later without the skill.",
+      "tokens": 109,
+      "units": 110,
+      "path": null
+     },
+     {
+      "name": "dependency-diet",
+      "plugin": null,
+      "description": "Finds heavy, duplicated or unused dependencies and suggests smaller replacements with the bundle size saved. Use when the user asks why the build is slow or the bundle is huge. Handles monorepos by working in the package the user is in, not the whole tree. Knows the common pitfalls on macOS, Linux and Windows and says which one applies.",
+      "tokens": 103,
+      "units": 105,
+      "path": null
+     },
+     {
+      "name": "log-detective",
+      "plugin": null,
+      "description": "Reads large log files for the few lines that matter: first error, the request that triggered it and what changed right before. Use when the user shares logs or asks what went wrong. Adds tests for anything it fixes so the same bug cannot quietly come back. Uses the project's formatter and linter settings rather than its own taste.",
+      "tokens": 101,
+      "units": 102,
+      "path": null
+     },
+     {
+      "name": "css-untangler",
+      "plugin": null,
+      "description": "Untangles CSS specificity wars, z-index towers and mysterious margins, and explains which rule actually wins. Use when a layout breaks or a style will not apply. Links to the exact files and lines it relied on so claims are easy to verify. Treats secrets, tokens and customer data as off limits and never prints them. Measures before and after whenever a change claims to make something faster or smaller. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five.",
+      "tokens": 159,
+      "units": 160,
+      "path": null
+     },
+     {
+      "name": "sql-explainer",
+      "plugin": null,
+      "description": "Explains slow SQL queries with the query plan in plain words and suggests indexes with their write cost. Use when the user shares a query or asks why the database is slow. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults.",
+      "tokens": 100,
+      "units": 101,
+      "path": null
+     },
+     {
+      "name": "api-mock-maker",
+      "plugin": null,
+      "description": "Generates realistic mock servers from an OpenAPI file or a few example responses, including errors and slow endpoints. Use when the user needs fake APIs for tests or demos. Prefers small, reviewable diffs and explains each change in one line.",
+      "tokens": 79,
+      "units": 80,
+      "path": null
+     },
+     {
+      "name": "benchmark-buddy",
+      "plugin": null,
+      "description": "Sets up fair micro and macro benchmarks with warmup, repeated runs and a note on variance. Use when the user asks which version is faster or wants to measure a change. Asks before deleting files, rewriting history or touching anything outside the workspace. Works offline and never sends project files to third-party services. Leaves a short summary of what it changed and what it deliberately left alone. Stops and asks when the request is ambiguous instead of guessing at scope.",
+      "tokens": 139,
+      "units": 140,
+      "path": null
+     },
+     {
+      "name": "i18n-sweeper",
+      "plugin": null,
+      "description": "Finds hardcoded UI strings, extracts them into translation files and flags strings that will not survive German. Use when the user localizes an app or adds a language. Keeps output short by default and expands only when the user asks for detail. Includes a checklist the user can rerun later without the skill. Handles monorepos by working in the package the user is in, not the whole tree. Knows the common pitfalls on macOS, Linux and Windows and says which one applies. Adds tests for anything it fixes so the same bug cannot quietly come back.",
+      "tokens": 154,
+      "units": 155,
+      "path": null
+     },
+     {
+      "name": "accessibility-pass",
+      "plugin": null,
+      "description": "Checks a page or component for keyboard traps, missing labels, contrast problems and focus order, with concrete fixes. Use when the user asks for an accessibility review or an audit before launch. Uses the project's formatter and linter settings rather than its own taste. Links to the exact files and lines it relied on so claims are easy to verify. Treats secrets, tokens and customer data as off limits and never prints them.",
+      "tokens": 127,
+      "units": 129,
+      "path": null
+     },
+     {
+      "name": "dark-mode-check",
+      "plugin": null,
+      "description": "Reviews a UI in light and dark themes for hardcoded colors, invisible borders and images that glow at midnight. Use when the user adds dark mode or a theme looks off.",
+      "tokens": 61,
+      "units": 62,
+      "path": null
+     },
+     {
+      "name": "screenshot-diff",
+      "plugin": null,
+      "description": "Compares before and after screenshots of a UI and describes what moved, what changed color and what disappeared. Use when the user asks to verify a visual change. Measures before and after whenever a change claims to make something faster or smaller.",
+      "tokens": 82,
+      "units": 83,
+      "path": null
+     },
+     {
+      "name": "license-checker",
+      "plugin": null,
+      "description": "Lists the licenses of all dependencies and flags the ones that need attention for the project's license. Use when the user asks about license compliance. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults. Prefers small, reviewable diffs and explains each change in one line.",
+      "tokens": 153,
+      "units": 155,
+      "path": null
+     },
+     {
+      "name": "snapshot-updater",
+      "plugin": null,
+      "description": "Updates test snapshots only after explaining each diff, so nobody blindly accepts a broken render. Use when snapshot tests fail after a change. Asks before deleting files, rewriting history or touching anything outside the workspace. Works offline and never sends project files to third-party services. Leaves a short summary of what it changed and what it deliberately left alone. Stops and asks when the request is ambiguous instead of guessing at scope. Keeps output short by default and expands only when the user asks for detail.",
+      "tokens": 153,
+      "units": 154,
+      "path": null
+     },
+     {
+      "name": "doc-linker",
+      "plugin": null,
+      "description": "Adds links between related docs pages and finds pages that nothing links to. Use when the user reorganizes documentation. Includes a checklist the user can rerun later without the skill. Handles monorepos by working in the package the user is in, not the whole tree.",
+      "tokens": 83,
+      "units": 84,
+      "path": null
+     },
+     {
+      "name": "plugin-scaffold",
+      "plugin": null,
+      "description": "Scaffolds a new Codex plugin with a manifest, an MCP server, an app view and a first skill, then runs a smoke test. Use when the user wants to build a plugin or add a tool to Codex. Knows the common pitfalls on macOS, Linux and Windows and says which one applies.",
+      "tokens": 85,
+      "units": 86,
+      "path": null
+     },
+     {
+      "name": "skill-builder",
+      "plugin": null,
+      "description": "Creates or updates a skill: a SKILL.md with a precise description, optional scripts and references, and a short evaluation. Use when the user wants to make a new skill or improve one. Adds tests for anything it fixes so the same bug cannot quietly come back. Uses the project's formatter and linter settings rather than its own taste. Links to the exact files and lines it relied on so claims are easy to verify. Treats secrets, tokens and customer data as off limits and never prints them. Measures before and after whenever a change claims to make something faster or smaller.",
+      "tokens": 164,
+      "units": 166,
+      "path": null
+     },
+     {
+      "name": "plugin-installer",
+      "plugin": null,
+      "description": "Finds and installs Codex plugins from a marketplace and explains what each one adds to context. Use when the user asks to install or browse plugins. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults.",
+      "tokens": 137,
+      "units": 139,
+      "path": null
+     }
+    ],
+    "tokens": 5222,
+    "units": 5440,
+    "budgetUnits": 5440,
+    "duplicates": [
+     "tidy-prose",
+     "tidy-prose:tidy-prose"
+    ]
+   },
+   "errors": [],
+   "generatedAt": 1790769600000,
+   "problems": [
+    {
+     "id": "agents-cut",
+     "severity": "high",
+     "title": "AGENTS.md cut off",
+     "cost": "2.2K ignored",
+     "tip": "Shorten it or move parts into skills",
+     "why": "Project AGENTS.md files share a 8 KB limit and add up to 8 KB, so the rest never reaches the model. packages/onboarding/apps/web/AGENTS.override.md is cut off.",
+     "evidence": "Codex's project_doc_max_bytes rule (32,768 bytes by default), checked against Codex's source.",
+     "basis": "measured",
+     "panel": null
+    },
+    {
+     "id": "skills-full",
+     "severity": "medium",
+     "title": "Skills catalog full",
+     "cost": "5.2K / request",
+     "tip": "Turn off skills you haven't used lately",
+     "why": "40 skills fill the whole budget (5,440 of 5,440), so Codex shortens every skill description to fit. Largest: space-cats:orbit-debugger, pixel-forge:sprite-sheet-builder, launchpad:release-checklist.",
+     "evidence": "Budget is 2% of the model's context window, counted the way Codex does: (bytes + 1) / 4 per catalog line.",
+     "basis": "measured",
+     "panel": "unused-skills"
+    },
+    {
+     "id": "resent-skills",
+     "severity": "medium",
+     "title": "Skills catalog sent twice",
+     "cost": "+5.2K / request",
+     "tip": "Start a new thread to drop old copies",
+     "why": "Your skills changed after this thread started (a plugin was installed or updated, or a skill turned on or off), so Codex sent it again. Old copies stay in context until the thread is compacted.",
+     "evidence": "This thread's history holds 2 copies of it since the last compaction.",
+     "basis": "measured",
+     "panel": null
+    },
+    {
+     "id": "agents-large",
+     "severity": "medium",
+     "title": "AGENTS.md is long",
+     "cost": "2.3K / request",
+     "tip": "Trim what Codex can read from the code",
+     "why": "Long instruction files bury the rules that matter. packages/onboarding/apps/web/AGENTS.override.md: 311 lines.",
+     "evidence": "Our threshold: over 2,000 tokens or 200 lines, after Anthropic's guidance for CLAUDE.md. Codex has no such rule.",
+     "basis": "rule",
+     "panel": null
+    },
+    {
+     "id": "skills-duplicated",
+     "severity": "low",
+     "title": "Duplicate skill",
+     "cost": "0 / request",
+     "tip": "Turn off one copy of each",
+     "why": "tidy-prose is installed twice, on its own and inside a plugin, so the catalog lists it twice.",
+     "evidence": "The catalog lists both “name” and “name:name”. Matched by name, so most likely the same skill.",
+     "basis": "measured",
+     "panel": "duplicate-skills"
+    },
+    {
+     "id": "agents-changed",
+     "severity": "low",
+     "title": "Old AGENTS.md in use",
+     "cost": null,
+     "tip": "Start a new thread to pick up your edits",
+     "why": "AGENTS.md changed after this thread started; the thread keeps the old text.",
+     "evidence": "The text this thread loaded differs from the file on disk now.",
+     "basis": "measured",
+     "panel": null
+    }
+   ],
+   "notes": [],
+   "compaction": {
+    "limit": 244800,
+    "current": 67312,
+    "perMessage": 6100,
+    "samples": 5,
+    "messagesLeft": 19
+   }
+  }
+ },
+ "inline": {
+  "content": [
+   {
+    "type": "text",
+    "text": "Thread \"Plan the onboarding redesign\" (gpt-6.1-sol): 67K of 258K context in use, 1 compaction.\nFixed 36.6K: tools & protocol 18.2K, skills catalog 5.2K x2, system prompt 4.2K, AGENTS.md 2.3K. Conversation 30.4K.\nAGENTS.md: 3 files loaded, project files 8 KB of 8 KB; desktop-panel/AGENTS.override.md truncated; AGENTS.md changed since loaded.\nSkills catalog: 40 skills, 5,246 of 5,440 budget units; tidy-prose listed twice."
+   }
+  ],
+  "structuredContent": {
+   "view": "inline",
+   "thread": {
+    "id": "01a0c0de-5eed-7ca7-8bee-000000000042",
+    "title": "Plan the onboarding redesign",
+    "cwd": "/Users/demo/Projects/Demo",
+    "model": "gpt-6.1-sol",
+    "isCurrent": true
+   },
+   "contextWindow": 258400,
+   "exactTokens": true,
+   "start": {
+    "inputTokens": 31618,
+    "blocks": [
+     {
+      "key": "system",
+      "label": "System prompt",
+      "tokens": 4212,
+      "copies": 1
+     },
+     {
+      "key": "skills",
+      "label": "Skills catalog",
+      "tokens": 5222,
+      "copies": 1
+     },
+     {
+      "key": "agents",
+      "label": "AGENTS.md",
+      "tokens": 2282,
+      "copies": 1
+     },
+     {
+      "key": "permissions",
+      "label": "Permissions",
+      "tokens": 486,
+      "copies": 1
+     },
+     {
+      "key": "app",
+      "label": "App context",
+      "tokens": 312,
+      "copies": 1
+     },
+     {
+      "key": "collaboration",
+      "label": "Collaboration mode",
+      "tokens": 274,
+      "copies": 1
+     },
+     {
+      "key": "plugins",
+      "label": "Plugins",
+      "tokens": 214,
+      "copies": 1
+     },
+     {
+      "key": "environment",
+      "label": "Environment",
+      "tokens": 148,
+      "copies": 1
+     }
+    ],
+    "userTokens": 268,
+    "toolsTokens": 18200
+   },
+   "now": {
+    "inputTokens": 67012,
+    "blocks": [
+     {
+      "key": "system",
+      "label": "System prompt",
+      "tokens": 4212,
+      "copies": 1
+     },
+     {
+      "key": "skills",
+      "label": "Skills catalog",
+      "tokens": 5222,
+      "copies": 2
+     },
+     {
+      "key": "agents",
+      "label": "AGENTS.md",
+      "tokens": 2282,
+      "copies": 1
+     },
+     {
+      "key": "permissions",
+      "label": "Permissions",
+      "tokens": 486,
+      "copies": 1
+     },
+     {
+      "key": "app",
+      "label": "App context",
+      "tokens": 312,
+      "copies": 1
+     },
+     {
+      "key": "collaboration",
+      "label": "Collaboration mode",
+      "tokens": 274,
+      "copies": 1
+     },
+     {
+      "key": "plugins",
+      "label": "Plugins",
+      "tokens": 214,
+      "copies": 1
+     },
+     {
+      "key": "environment",
+      "label": "Environment",
+      "tokens": 148,
+      "copies": 1
+     }
+    ],
+    "toolsTokens": 18200,
+    "conversationTokens": 30440,
+    "compactions": 1
+   },
+   "agents": {
+    "files": [
+     {
+      "path": "/Users/demo/.codex/AGENTS.md",
+      "display": "~/.codex/AGENTS.md",
+      "scope": "global",
+      "kind": "AGENTS.md",
+      "status": "full",
+      "shadowedBy": null,
+      "tokens": 262,
+      "fileTokens": 262,
+      "bytes": 1090,
+      "lines": 21,
+      "changedSinceLoaded": false
+     },
+     {
+      "path": "/Users/demo/Projects/Demo/AGENTS.md",
+      "display": "AGENTS.md",
+      "scope": "project",
+      "kind": "AGENTS.md",
+      "status": "full",
+      "shadowedBy": null,
+      "tokens": 1106,
+      "fileTokens": 1379,
+      "bytes": 5702,
+      "lines": 118,
+      "changedSinceLoaded": true
+     },
+     {
+      "path": "/Users/demo/Projects/Demo/CLAUDE.md",
+      "display": "CLAUDE.md",
+      "scope": "project",
+      "kind": "fallback",
+      "status": "shadowed",
+      "shadowedBy": "AGENTS.md",
+      "tokens": 0,
+      "fileTokens": 402,
+      "bytes": 1610,
+      "lines": 38,
+      "changedSinceLoaded": false
+     },
+     {
+      "path": "/Users/demo/Projects/Demo/packages/onboarding/apps/web/AGENTS.override.md",
+      "display": "packages/onboarding/apps/web/AGENTS.override.md",
+      "scope": "project",
+      "kind": "AGENTS.override.md",
+      "status": "truncated",
+      "shadowedBy": null,
+      "tokens": 880,
+      "fileTokens": 3050,
+      "bytes": 12650,
+      "lines": 311,
+      "changedSinceLoaded": false
+     }
+    ],
+    "projectRoot": "/Users/demo/Projects/Demo",
+    "projectBytes": 8192,
+    "projectBudget": 8192,
+    "loadedTokens": 2282
+   },
+   "skills": {
+    "entries": [
+     {
+      "name": "launchpad:release-checklist",
+      "plugin": "launchpad",
+      "description": "Walks a release from frozen main to published tag: changelog, version bump, store notes, smoke tests and the post-release tweet. Use when the user says ship it, cut a release, prepare a launch, or asks what is left before releasing. Covers npm, PyPI, crates.io, the App Store and a heroic amount of YAML. Asks before pushing tags, publishing packages or posting anywhere public, and keeps a rollback note ready in case the launch sequence needs to be aborted at T-minus five minutes. Reads the project's own conventions first and follows them over its defaults. Prefers small, reviewable diffs and explains each change in one line.",
+      "tokens": 190,
+      "units": 192,
+      "path": null
+     },
+     {
+      "name": "launchpad:changelog-writer",
+      "plugin": "launchpad",
+      "description": "Turns a pile of merged pull requests into a changelog people actually read: groups by feature, fix and chore, drops bot noise, links issues, and writes one plain sentence per change. Use when the user asks for release notes, a changelog entry, a what's-new post or a summary of everything since the last tag. Never invents changes that are not in the git history. Asks before deleting files, rewriting history or touching anything outside the workspace.",
+      "tokens": 146,
+      "units": 147,
+      "path": null
+     },
+     {
+      "name": "launchpad:version-bumper",
+      "plugin": "launchpad",
+      "description": "Bumps versions consistently across package.json, lockfiles, manifests and docs, following semver from the change list. Use when the user asks to bump, tag or set a version, or when a release checklist reaches the versioning step. Works offline and never sends project files to third-party services. Leaves a short summary of what it changed and what it deliberately left alone.",
+      "tokens": 126,
+      "units": 127,
+      "path": null
+     },
+     {
+      "name": "launchpad:store-screenshots",
+      "plugin": "launchpad",
+      "description": "Plans and captures App Store and Play Store screenshots at every required size, with captions that fit and a consistent device frame. Use when the user prepares a store listing, updates marketing screenshots or asks which sizes are required this year. Stops and asks when the request is ambiguous instead of guessing at scope.",
+      "tokens": 114,
+      "units": 116,
+      "path": null
+     },
+     {
+      "name": "pixel-forge:sprite-sheet-builder",
+      "plugin": "pixel-forge",
+      "description": "Packs loose PNG frames into sprite sheets with a JSON atlas, trims transparent edges, keeps animations in order and flags frames that changed size between versions. Use when the user works on 2D game art, asks to pack sprites, build an atlas or fix a jittering animation. Supports Aseprite exports, TexturePacker-style JSON and plain grids, and explains the memory cost of each sheet before writing it. Keeps output short by default and expands only when the user asks for detail. Includes a checklist the user can rerun later without the skill. Handles monorepos by working in the package the user is in, not the whole tree.",
+      "tokens": 191,
+      "units": 193,
+      "path": null
+     },
+     {
+      "name": "pixel-forge:palette-picker",
+      "plugin": "pixel-forge",
+      "description": "Builds limited color palettes for pixel art from a mood, a reference image or a console era, and checks contrast for UI text. Use when the user asks for a palette, a color ramp or a retro look. Knows the common pitfalls on macOS, Linux and Windows and says which one applies. Adds tests for anything it fixes so the same bug cannot quietly come back. Uses the project's formatter and linter settings rather than its own taste. Links to the exact files and lines it relied on so claims are easy to verify. Treats secrets, tokens and customer data as off limits and never prints them.",
+      "tokens": 178,
+      "units": 179,
+      "path": null
+     },
+     {
+      "name": "pixel-forge:shader-sandbox",
+      "plugin": "pixel-forge",
+      "description": "Sets up a tiny WebGL playground for fragment shaders with hot reload, uniforms for time and mouse, and a gallery of starter effects: CRT scanlines, water ripples, dithering and a very tasteful amount of bloom. Use when the user wants to experiment with shaders, port a Shadertoy snippet, or debug why everything renders black. Explains each uniform and keeps the math commented so the next person survives it. Measures before and after whenever a change claims to make something faster or smaller.",
+      "tokens": 156,
+      "units": 158,
+      "path": null
+     },
+     {
+      "name": "pixel-forge:retro-font-kit",
+      "plugin": "pixel-forge",
+      "description": "Converts bitmap fonts into web fonts and game-engine font atlases, with kerning tables and a preview page. Use when the user needs a pixel font in a game or on the web. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults.",
+      "tokens": 153,
+      "units": 155,
+      "path": null
+     },
+     {
+      "name": "coffee-ops:brew-planner",
+      "plugin": "coffee-ops",
+      "description": "Plans the team's coffee supply like an on-call rotation: who brews, when beans run out, and which machine needs descaling. Use when the user mentions coffee logistics, office supplies for caffeine, or asks why the kitchen is out of oat milk again. Prefers small, reviewable diffs and explains each change in one line. Asks before deleting files, rewriting history or touching anything outside the workspace. Works offline and never sends project files to third-party services.",
+      "tokens": 150,
+      "units": 151,
+      "path": null
+     },
+     {
+      "name": "coffee-ops:bean-inventory",
+      "plugin": "coffee-ops",
+      "description": "Tracks bean bags, roast dates and grind settings in a small JSON file and warns before anything goes stale. Use when the user logs a new bag or asks what to brew next. Leaves a short summary of what it changed and what it deliberately left alone. Stops and asks when the request is ambiguous instead of guessing at scope.",
+      "tokens": 112,
+      "units": 113,
+      "path": null
+     },
+     {
+      "name": "coffee-ops:latte-art-review",
+      "plugin": "coffee-ops",
+      "description": "Reviews photos of latte art with the seriousness of a code review: symmetry, contrast, milk texture and one kind suggestion per cup. Use when the user shares latte art or asks for feedback on their pour. Keeps output short by default and expands only when the user asks for detail. Includes a checklist the user can rerun later without the skill. Handles monorepos by working in the package the user is in, not the whole tree.",
+      "tokens": 139,
+      "units": 141,
+      "path": null
+     },
+     {
+      "name": "space-cats:orbit-debugger",
+      "plugin": "space-cats",
+      "description": "Debugs orbital mechanics code in games and simulations: energy drift, exploding integrators, time-step bugs and cats that refuse to stay in orbit. Use when the user's physics simulation behaves strangely, bodies fly off to infinity, or a planet quietly eats its moon. Compares Euler, Verlet and RK4 on the user's own scene and plots the energy error so the fix is visible, not just claimed. Knows the common pitfalls on macOS, Linux and Windows and says which one applies. Adds tests for anything it fixes so the same bug cannot quietly come back. Uses the project's formatter and linter settings rather than its own taste. Links to the exact files and lines it relied on so claims are easy to verify. Treats secrets, tokens and customer data as off limits and never prints them.",
+      "tokens": 226,
+      "units": 228,
+      "path": null
+     },
+     {
+      "name": "space-cats:zero-g-refactor",
+      "plugin": "space-cats",
+      "description": "Refactors tangled code by floating responsibilities apart until each module has one job, then lands them gently with tests. Use when the user asks for a refactor, a module split or a cleanup of a god object. Measures before and after whenever a change claims to make something faster or smaller. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults.",
+      "tokens": 185,
+      "units": 186,
+      "path": null
+     },
+     {
+      "name": "space-cats:hairball-triage",
+      "plugin": "space-cats",
+      "description": "Triages a messy issue tracker: merges duplicates, labels by area, closes the stale ones politely and surfaces the three bugs that actually hurt users. Use when the user asks to clean up issues, triage a backlog or find what to fix first. Prefers small, reviewable diffs and explains each change in one line. Asks before deleting files, rewriting history or touching anything outside the workspace. Works offline and never sends project files to third-party services. Leaves a short summary of what it changed and what it deliberately left alone.",
+      "tokens": 168,
+      "units": 170,
+      "path": null
+     },
+     {
+      "name": "tidy-prose",
+      "plugin": null,
+      "description": "Edits prose for clarity and rhythm without changing its meaning: shorter sentences, fewer filler words, no marketing voice. Use when the user asks to polish, tighten or proofread text.",
+      "tokens": 63,
+      "units": 64,
+      "path": null
+     },
+     {
+      "name": "tidy-prose",
+      "plugin": null,
+      "description": "Edits prose for clarity and rhythm without changing its meaning: shorter sentences, fewer filler words, no marketing voice. Use when the user asks to polish, tighten or proofread text.",
+      "tokens": 63,
+      "units": 64,
+      "path": null
+     },
+     {
+      "name": "commit-poet",
+      "plugin": null,
+      "description": "Writes conventional commit messages from the staged diff: a precise subject line, a short body that explains why, and no poetry despite the name. Use when the user asks for a commit message or wants to commit. Stops and asks when the request is ambiguous instead of guessing at scope.",
+      "tokens": 88,
+      "units": 89,
+      "path": null
+     },
+     {
+      "name": "flaky-test-hunter",
+      "plugin": null,
+      "description": "Finds flaky tests by rerunning suspects with different seeds and timings, then explains the race, the shared state or the sleeping test that caused it. Use when tests pass locally and fail in CI, or fail one run in ten. Produces a minimal reproduction and a fix that does not involve adding another retry. Keeps output short by default and expands only when the user asks for detail. Includes a checklist the user can rerun later without the skill.",
+      "tokens": 132,
+      "units": 133,
+      "path": null
+     },
+     {
+      "name": "yak-shaver",
+      "plugin": null,
+      "description": "Notices when a task has drifted three layers away from the original goal and proposes the shortest way back. Use when the user says they just need to fix one tiny thing first. Handles monorepos by working in the package the user is in, not the whole tree. Knows the common pitfalls on macOS, Linux and Windows and says which one applies. Adds tests for anything it fixes so the same bug cannot quietly come back. Uses the project's formatter and linter settings rather than its own taste. Links to the exact files and lines it relied on so claims are easy to verify.",
+      "tokens": 158,
+      "units": 159,
+      "path": null
+     },
+     {
+      "name": "rubber-duck",
+      "plugin": null,
+      "description": "Listens to a problem explained step by step and asks one clarifying question at a time until the bug becomes obvious. Use when the user wants to think out loud or is stuck. Treats secrets, tokens and customer data as off limits and never prints them. Measures before and after whenever a change claims to make something faster or smaller.",
+      "tokens": 101,
+      "units": 103,
+      "path": null
+     },
+     {
+      "name": "regex-whisperer",
+      "plugin": null,
+      "description": "Writes, explains and tests regular expressions with examples that match and examples that must not. Use when the user needs a regex or inherited one nobody understands. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults.",
+      "tokens": 140,
+      "units": 141,
+      "path": null
+     },
+     {
+      "name": "emoji-police",
+      "plugin": null,
+      "description": "Removes decorative emoji from docs, commit messages and UI copy while keeping the ones that carry meaning. Use when the user asks to clean up copy or make text more professional. Prefers small, reviewable diffs and explains each change in one line.",
+      "tokens": 80,
+      "units": 81,
+      "path": null
+     },
+     {
+      "name": "meeting-to-todo",
+      "plugin": null,
+      "description": "Turns meeting notes into a short list of owners, actions and dates, and drops everything that was only discussed. Use when the user pastes notes or a transcript and asks for next steps. Asks before deleting files, rewriting history or touching anything outside the workspace. Works offline and never sends project files to third-party services. Leaves a short summary of what it changed and what it deliberately left alone. Stops and asks when the request is ambiguous instead of guessing at scope.",
+      "tokens": 143,
+      "units": 145,
+      "path": null
+     },
+     {
+      "name": "readme-polisher",
+      "plugin": null,
+      "description": "Restructures a README so a newcomer can install, run and understand the project in five minutes: what it is, quick start, configuration, and where to get help. Use when the user asks to improve docs or write a README. Keeps output short by default and expands only when the user asks for detail. Includes a checklist the user can rerun later without the skill.",
+      "tokens": 109,
+      "units": 110,
+      "path": null
+     },
+     {
+      "name": "dependency-diet",
+      "plugin": null,
+      "description": "Finds heavy, duplicated or unused dependencies and suggests smaller replacements with the bundle size saved. Use when the user asks why the build is slow or the bundle is huge. Handles monorepos by working in the package the user is in, not the whole tree. Knows the common pitfalls on macOS, Linux and Windows and says which one applies.",
+      "tokens": 103,
+      "units": 105,
+      "path": null
+     },
+     {
+      "name": "log-detective",
+      "plugin": null,
+      "description": "Reads large log files for the few lines that matter: first error, the request that triggered it and what changed right before. Use when the user shares logs or asks what went wrong. Adds tests for anything it fixes so the same bug cannot quietly come back. Uses the project's formatter and linter settings rather than its own taste.",
+      "tokens": 101,
+      "units": 102,
+      "path": null
+     },
+     {
+      "name": "css-untangler",
+      "plugin": null,
+      "description": "Untangles CSS specificity wars, z-index towers and mysterious margins, and explains which rule actually wins. Use when a layout breaks or a style will not apply. Links to the exact files and lines it relied on so claims are easy to verify. Treats secrets, tokens and customer data as off limits and never prints them. Measures before and after whenever a change claims to make something faster or smaller. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five.",
+      "tokens": 159,
+      "units": 160,
+      "path": null
+     },
+     {
+      "name": "sql-explainer",
+      "plugin": null,
+      "description": "Explains slow SQL queries with the query plan in plain words and suggests indexes with their write cost. Use when the user shares a query or asks why the database is slow. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults.",
+      "tokens": 100,
+      "units": 101,
+      "path": null
+     },
+     {
+      "name": "api-mock-maker",
+      "plugin": null,
+      "description": "Generates realistic mock servers from an OpenAPI file or a few example responses, including errors and slow endpoints. Use when the user needs fake APIs for tests or demos. Prefers small, reviewable diffs and explains each change in one line.",
+      "tokens": 79,
+      "units": 80,
+      "path": null
+     },
+     {
+      "name": "benchmark-buddy",
+      "plugin": null,
+      "description": "Sets up fair micro and macro benchmarks with warmup, repeated runs and a note on variance. Use when the user asks which version is faster or wants to measure a change. Asks before deleting files, rewriting history or touching anything outside the workspace. Works offline and never sends project files to third-party services. Leaves a short summary of what it changed and what it deliberately left alone. Stops and asks when the request is ambiguous instead of guessing at scope.",
+      "tokens": 139,
+      "units": 140,
+      "path": null
+     },
+     {
+      "name": "i18n-sweeper",
+      "plugin": null,
+      "description": "Finds hardcoded UI strings, extracts them into translation files and flags strings that will not survive German. Use when the user localizes an app or adds a language. Keeps output short by default and expands only when the user asks for detail. Includes a checklist the user can rerun later without the skill. Handles monorepos by working in the package the user is in, not the whole tree. Knows the common pitfalls on macOS, Linux and Windows and says which one applies. Adds tests for anything it fixes so the same bug cannot quietly come back.",
+      "tokens": 154,
+      "units": 155,
+      "path": null
+     },
+     {
+      "name": "accessibility-pass",
+      "plugin": null,
+      "description": "Checks a page or component for keyboard traps, missing labels, contrast problems and focus order, with concrete fixes. Use when the user asks for an accessibility review or an audit before launch. Uses the project's formatter and linter settings rather than its own taste. Links to the exact files and lines it relied on so claims are easy to verify. Treats secrets, tokens and customer data as off limits and never prints them.",
+      "tokens": 127,
+      "units": 129,
+      "path": null
+     },
+     {
+      "name": "dark-mode-check",
+      "plugin": null,
+      "description": "Reviews a UI in light and dark themes for hardcoded colors, invisible borders and images that glow at midnight. Use when the user adds dark mode or a theme looks off.",
+      "tokens": 61,
+      "units": 62,
+      "path": null
+     },
+     {
+      "name": "screenshot-diff",
+      "plugin": null,
+      "description": "Compares before and after screenshots of a UI and describes what moved, what changed color and what disappeared. Use when the user asks to verify a visual change. Measures before and after whenever a change claims to make something faster or smaller.",
+      "tokens": 82,
+      "units": 83,
+      "path": null
+     },
+     {
+      "name": "license-checker",
+      "plugin": null,
+      "description": "Lists the licenses of all dependencies and flags the ones that need attention for the project's license. Use when the user asks about license compliance. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults. Prefers small, reviewable diffs and explains each change in one line.",
+      "tokens": 153,
+      "units": 155,
+      "path": null
+     },
+     {
+      "name": "snapshot-updater",
+      "plugin": null,
+      "description": "Updates test snapshots only after explaining each diff, so nobody blindly accepts a broken render. Use when snapshot tests fail after a change. Asks before deleting files, rewriting history or touching anything outside the workspace. Works offline and never sends project files to third-party services. Leaves a short summary of what it changed and what it deliberately left alone. Stops and asks when the request is ambiguous instead of guessing at scope. Keeps output short by default and expands only when the user asks for detail.",
+      "tokens": 153,
+      "units": 154,
+      "path": null
+     },
+     {
+      "name": "doc-linker",
+      "plugin": null,
+      "description": "Adds links between related docs pages and finds pages that nothing links to. Use when the user reorganizes documentation. Includes a checklist the user can rerun later without the skill. Handles monorepos by working in the package the user is in, not the whole tree.",
+      "tokens": 83,
+      "units": 84,
+      "path": null
+     },
+     {
+      "name": "plugin-scaffold",
+      "plugin": null,
+      "description": "Scaffolds a new Codex plugin with a manifest, an MCP server, an app view and a first skill, then runs a smoke test. Use when the user wants to build a plugin or add a tool to Codex. Knows the common pitfalls on macOS, Linux and Windows and says which one applies.",
+      "tokens": 85,
+      "units": 86,
+      "path": null
+     },
+     {
+      "name": "skill-builder",
+      "plugin": null,
+      "description": "Creates or updates a skill: a SKILL.md with a precise description, optional scripts and references, and a short evaluation. Use when the user wants to make a new skill or improve one. Adds tests for anything it fixes so the same bug cannot quietly come back. Uses the project's formatter and linter settings rather than its own taste. Links to the exact files and lines it relied on so claims are easy to verify. Treats secrets, tokens and customer data as off limits and never prints them. Measures before and after whenever a change claims to make something faster or smaller.",
+      "tokens": 164,
+      "units": 166,
+      "path": null
+     },
+     {
+      "name": "plugin-installer",
+      "plugin": null,
+      "description": "Finds and installs Codex plugins from a marketplace and explains what each one adds to context. Use when the user asks to install or browse plugins. Suggests a follow-up task instead of silently expanding the current one. Explains trade-offs in plain words and recommends one option instead of listing five. Writes notes a teammate can pick up tomorrow without reading the whole thread. Reads the project's own conventions first and follows them over its defaults.",
+      "tokens": 137,
+      "units": 139,
+      "path": null
+     }
+    ],
+    "tokens": 5222,
+    "units": 5440,
+    "budgetUnits": 5440,
+    "duplicates": [
+     "tidy-prose",
+     "tidy-prose:tidy-prose"
+    ]
+   },
+   "errors": [],
+   "generatedAt": 1790769600000,
+   "problems": [
+    {
+     "id": "agents-cut",
+     "severity": "high",
+     "title": "AGENTS.md cut off",
+     "cost": "2.2K ignored",
+     "tip": "Shorten it or move parts into skills",
+     "why": "Project AGENTS.md files share a 8 KB limit and add up to 8 KB, so the rest never reaches the model. packages/onboarding/apps/web/AGENTS.override.md is cut off.",
+     "evidence": "Codex's project_doc_max_bytes rule (32,768 bytes by default), checked against Codex's source.",
+     "basis": "measured",
+     "panel": null
+    },
+    {
+     "id": "skills-full",
+     "severity": "medium",
+     "title": "Skills catalog full",
+     "cost": "5.2K / request",
+     "tip": "Turn off skills you haven't used lately",
+     "why": "40 skills fill the whole budget (5,440 of 5,440), so Codex shortens every skill description to fit. Largest: space-cats:orbit-debugger, pixel-forge:sprite-sheet-builder, launchpad:release-checklist.",
+     "evidence": "Budget is 2% of the model's context window, counted the way Codex does: (bytes + 1) / 4 per catalog line.",
+     "basis": "measured",
+     "panel": "unused-skills"
+    },
+    {
+     "id": "resent-skills",
+     "severity": "medium",
+     "title": "Skills catalog sent twice",
+     "cost": "+5.2K / request",
+     "tip": "Start a new thread to drop old copies",
+     "why": "Your skills changed after this thread started (a plugin was installed or updated, or a skill turned on or off), so Codex sent it again. Old copies stay in context until the thread is compacted.",
+     "evidence": "This thread's history holds 2 copies of it since the last compaction.",
+     "basis": "measured",
+     "panel": null
+    },
+    {
+     "id": "agents-large",
+     "severity": "medium",
+     "title": "AGENTS.md is long",
+     "cost": "2.3K / request",
+     "tip": "Trim what Codex can read from the code",
+     "why": "Long instruction files bury the rules that matter. packages/onboarding/apps/web/AGENTS.override.md: 311 lines.",
+     "evidence": "Our threshold: over 2,000 tokens or 200 lines, after Anthropic's guidance for CLAUDE.md. Codex has no such rule.",
+     "basis": "rule",
+     "panel": null
+    },
+    {
+     "id": "skills-duplicated",
+     "severity": "low",
+     "title": "Duplicate skill",
+     "cost": "0 / request",
+     "tip": "Turn off one copy of each",
+     "why": "tidy-prose is installed twice, on its own and inside a plugin, so the catalog lists it twice.",
+     "evidence": "The catalog lists both “name” and “name:name”. Matched by name, so most likely the same skill.",
+     "basis": "measured",
+     "panel": "duplicate-skills"
+    },
+    {
+     "id": "agents-changed",
+     "severity": "low",
+     "title": "Old AGENTS.md in use",
+     "cost": null,
+     "tip": "Start a new thread to pick up your edits",
+     "why": "AGENTS.md changed after this thread started; the thread keeps the old text.",
+     "evidence": "The text this thread loaded differs from the file on disk now.",
+     "basis": "measured",
+     "panel": null
+    }
+   ],
+   "notes": [],
+   "compaction": {
+    "limit": 244800,
+    "current": 67312,
+    "perMessage": 6100,
+    "samples": 5,
+    "messagesLeft": 19
+   }
+  }
+ },
+ "legacy": {
+  "content": [
+   {
+    "type": "text",
+    "text": "Thread \"Old thread from the summer\": 48.2K of 272K context in use. This thread doesn't record its context blocks."
+   }
+  ],
+  "structuredContent": {
+   "view": "panel",
+   "thread": {
+    "id": "01a0c0de-01d0-7ca7-8bee-000000000007",
+    "title": "Old thread from the summer",
+    "cwd": "/Users/demo/Projects/Demo",
+    "model": "gpt-5.5",
+    "isCurrent": true
+   },
+   "contextWindow": 272000,
+   "exactTokens": false,
+   "start": null,
+   "now": {
+    "inputTokens": 48210,
+    "blocks": [],
+    "toolsTokens": 0,
+    "conversationTokens": 48210,
+    "compactions": 0
+   },
+   "agents": {
+    "files": [],
+    "projectRoot": "/Users/demo/Projects/Demo",
+    "projectBytes": 0,
+    "projectBudget": 32768,
+    "loadedTokens": 0
+   },
+   "skills": {
+    "entries": [],
+    "tokens": 0,
+    "units": 0,
+    "budgetUnits": null,
+    "duplicates": []
+   },
+   "errors": [],
+   "generatedAt": 1790769600000,
+   "problems": [],
+   "notes": []
+  }
+ },
+ "empty": {
+  "content": [
+   {
+    "type": "text",
+    "text": "No Codex thread found."
+   }
+  ],
+  "structuredContent": {
+   "view": "panel",
+   "thread": null,
+   "contextWindow": null,
+   "exactTokens": true,
+   "start": null,
+   "now": null,
+   "agents": {
+    "files": [],
+    "projectRoot": null,
+    "projectBytes": 0,
+    "projectBudget": 32768,
+    "loadedTokens": 0
+   },
+   "skills": {
+    "entries": [],
+    "tokens": 0,
+    "units": 0,
+    "budgetUnits": null,
+    "duplicates": []
+   },
+   "errors": [
+    "Couldn't open ~/.codex/state_5.sqlite: the file is locked by another process."
+   ],
+   "generatedAt": 1790769600000,
+   "problems": [],
+   "notes": []
+  }
+ },
+ "skills": {
+  "days": 30,
+  "entries": [
+   {
+    "name": "launchpad:release-checklist",
+    "plugin": "launchpad",
+    "path": "/Users/demo/.codex/plugins/cache/demo/launchpad/1.0.0/skills/release-checklist/SKILL.md",
+    "tokens": 190,
+    "uses": 21,
+    "lastUsed": 1790504400000,
+    "enabled": true,
+    "description": "Helps with release checklist tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your plugin \"launchpad\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": "demo/launchpad",
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "launchpad:changelog-writer",
+    "plugin": "launchpad",
+    "path": "/Users/demo/.codex/plugins/cache/demo/launchpad/1.0.0/skills/changelog-writer/SKILL.md",
+    "tokens": 146,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with changelog writer tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your plugin \"launchpad\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": "demo/launchpad",
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "launchpad:version-bumper",
+    "plugin": "launchpad",
+    "path": "/Users/demo/.codex/plugins/cache/demo/launchpad/1.0.0/skills/version-bumper/SKILL.md",
+    "tokens": 126,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with version bumper tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your plugin \"launchpad\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": "demo/launchpad",
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "launchpad:store-screenshots",
+    "plugin": "launchpad",
+    "path": "/Users/demo/.codex/plugins/cache/demo/launchpad/1.0.0/skills/store-screenshots/SKILL.md",
+    "tokens": 114,
+    "uses": 26,
+    "lastUsed": 1789122000000,
+    "enabled": true,
+    "description": "Helps with store screenshots tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your plugin \"launchpad\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": "demo/launchpad",
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "pixel-forge:sprite-sheet-builder",
+    "plugin": "pixel-forge",
+    "path": "/Users/demo/.codex/plugins/cache/openai-curated/pixel-forge/1.0.0/skills/sprite-sheet-builder/SKILL.md",
+    "tokens": 191,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with sprite sheet builder tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "OpenAI plugin \"pixel-forge\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": "openai-curated/pixel-forge",
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "pixel-forge:palette-picker",
+    "plugin": "pixel-forge",
+    "path": "/Users/demo/.codex/plugins/cache/openai-curated/pixel-forge/1.0.0/skills/palette-picker/SKILL.md",
+    "tokens": 178,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with palette picker tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "OpenAI plugin \"pixel-forge\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": "openai-curated/pixel-forge",
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "pixel-forge:shader-sandbox",
+    "plugin": "pixel-forge",
+    "path": "/Users/demo/.codex/plugins/cache/openai-curated/pixel-forge/1.0.0/skills/shader-sandbox/SKILL.md",
+    "tokens": 156,
+    "uses": 4,
+    "lastUsed": 1790677200000,
+    "enabled": true,
+    "description": "Helps with shader sandbox tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "OpenAI plugin \"pixel-forge\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": "openai-curated/pixel-forge",
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "pixel-forge:retro-font-kit",
+    "plugin": "pixel-forge",
+    "path": "/Users/demo/.codex/plugins/cache/openai-curated/pixel-forge/1.0.0/skills/retro-font-kit/SKILL.md",
+    "tokens": 153,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with retro font kit tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "OpenAI plugin \"pixel-forge\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": "openai-curated/pixel-forge",
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "coffee-ops:brew-planner",
+    "plugin": "coffee-ops",
+    "path": "/Users/demo/.codex/plugins/cache/demo/coffee-ops/1.0.0/skills/brew-planner/SKILL.md",
+    "tokens": 150,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with brew planner tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "OpenAI plugin \"coffee-ops\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "coffee-ops:bean-inventory",
+    "plugin": "coffee-ops",
+    "path": "/Users/demo/.codex/plugins/cache/demo/coffee-ops/1.0.0/skills/bean-inventory/SKILL.md",
+    "tokens": 112,
+    "uses": 35,
+    "lastUsed": 1790590800000,
+    "enabled": true,
+    "description": "Helps with bean inventory tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "OpenAI plugin \"coffee-ops\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "coffee-ops:latte-art-review",
+    "plugin": "coffee-ops",
+    "path": "/Users/demo/.codex/plugins/cache/demo/coffee-ops/1.0.0/skills/latte-art-review/SKILL.md",
+    "tokens": 139,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with latte art review tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "OpenAI plugin \"coffee-ops\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "space-cats:orbit-debugger",
+    "plugin": "space-cats",
+    "path": "/Users/demo/.codex/plugins/cache/demo/space-cats/1.0.0/skills/orbit-debugger/SKILL.md",
+    "tokens": 226,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with orbit debugger tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your plugin \"space-cats\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "space-cats:zero-g-refactor",
+    "plugin": "space-cats",
+    "path": "/Users/demo/.codex/plugins/cache/demo/space-cats/1.0.0/skills/zero-g-refactor/SKILL.md",
+    "tokens": 185,
+    "uses": 24,
+    "lastUsed": 1789294800000,
+    "enabled": true,
+    "description": "Helps with zero g refactor tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your plugin \"space-cats\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "space-cats:hairball-triage",
+    "plugin": "space-cats",
+    "path": "/Users/demo/.codex/plugins/cache/demo/space-cats/1.0.0/skills/hairball-triage/SKILL.md",
+    "tokens": 168,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with hairball triage tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your plugin \"space-cats\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "tidy-prose",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/tidy-prose/SKILL.md",
+    "tokens": 63,
+    "uses": 14,
+    "lastUsed": 1790590800000,
+    "enabled": true,
+    "description": "Helps with tidy prose tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "tidy-prose:tidy-prose",
+    "plugin": "tidy-prose",
+    "path": "/Users/demo/.codex/plugins/cache/demo/tidy-prose/1.2.0/skills/tidy-prose/SKILL.md",
+    "tokens": 63,
+    "uses": 2,
+    "lastUsed": 1789122000000,
+    "enabled": true,
+    "description": "Helps with tidy prose tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your plugin \"tidy-prose\"",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "plugin"
+   },
+   {
+    "name": "commit-poet",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/.system/commit-poet/SKILL.md",
+    "tokens": 88,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with commit poet tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Built-in",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "builtin"
+   },
+   {
+    "name": "flaky-test-hunter",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/.system/flaky-test-hunter/SKILL.md",
+    "tokens": 132,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with flaky test hunter tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Built-in",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "builtin"
+   },
+   {
+    "name": "yak-shaver",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/yak-shaver/SKILL.md",
+    "tokens": 158,
+    "uses": 14,
+    "lastUsed": 1790763600000,
+    "enabled": true,
+    "description": "Helps with yak shaver tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "rubber-duck",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/.system/rubber-duck/SKILL.md",
+    "tokens": 101,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with rubber duck tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Built-in",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "builtin"
+   },
+   {
+    "name": "regex-whisperer",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/regex-whisperer/SKILL.md",
+    "tokens": 140,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with regex whisperer tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "emoji-police",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/emoji-police/SKILL.md",
+    "tokens": 80,
+    "uses": 6,
+    "lastUsed": 1789726800000,
+    "enabled": true,
+    "description": "Helps with emoji police tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "meeting-to-todo",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/meeting-to-todo/SKILL.md",
+    "tokens": 143,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with meeting to todo tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "readme-polisher",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/readme-polisher/SKILL.md",
+    "tokens": 109,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with readme polisher tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "dependency-diet",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/dependency-diet/SKILL.md",
+    "tokens": 103,
+    "uses": 27,
+    "lastUsed": 1790677200000,
+    "enabled": true,
+    "description": "Helps with dependency diet tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "log-detective",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/log-detective/SKILL.md",
+    "tokens": 101,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with log detective tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "css-untangler",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/css-untangler/SKILL.md",
+    "tokens": 159,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with css untangler tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "sql-explainer",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/sql-explainer/SKILL.md",
+    "tokens": 100,
+    "uses": 16,
+    "lastUsed": 1790677200000,
+    "enabled": true,
+    "description": "Helps with sql explainer tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "api-mock-maker",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/api-mock-maker/SKILL.md",
+    "tokens": 79,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with api mock maker tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "benchmark-buddy",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/benchmark-buddy/SKILL.md",
+    "tokens": 139,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with benchmark buddy tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "i18n-sweeper",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/i18n-sweeper/SKILL.md",
+    "tokens": 154,
+    "uses": 36,
+    "lastUsed": 1789726800000,
+    "enabled": true,
+    "description": "Helps with i18n sweeper tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "accessibility-pass",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/accessibility-pass/SKILL.md",
+    "tokens": 127,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with accessibility pass tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "dark-mode-check",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/dark-mode-check/SKILL.md",
+    "tokens": 61,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with dark mode check tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "screenshot-diff",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/screenshot-diff/SKILL.md",
+    "tokens": 82,
+    "uses": 4,
+    "lastUsed": 1789294800000,
+    "enabled": true,
+    "description": "Helps with screenshot diff tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "license-checker",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/license-checker/SKILL.md",
+    "tokens": 153,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with license checker tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "snapshot-updater",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/snapshot-updater/SKILL.md",
+    "tokens": 153,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with snapshot updater tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "doc-linker",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/doc-linker/SKILL.md",
+    "tokens": 83,
+    "uses": 8,
+    "lastUsed": 1790245200000,
+    "enabled": true,
+    "description": "Helps with doc linker tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "plugin-scaffold",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/plugin-scaffold/SKILL.md",
+    "tokens": 85,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with plugin scaffold tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "skill-builder",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/skill-builder/SKILL.md",
+    "tokens": 164,
+    "uses": 0,
+    "lastUsed": null,
+    "enabled": true,
+    "description": "Helps with skill builder tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   },
+   {
+    "name": "plugin-installer",
+    "plugin": null,
+    "path": "/Users/demo/.codex/skills/plugin-installer/SKILL.md",
+    "tokens": 137,
+    "uses": 38,
+    "lastUsed": 1790763600000,
+    "enabled": true,
+    "description": "Helps with plugin installer tasks: sets up the steps, runs the checks and reports what changed.",
+    "source": "Your skills folder",
+    "addedAt": 1780000000000,
+    "pluginIcon": null,
+    "sourceKind": "user"
+   }
+  ],
+  "error": null,
+  "icons": {
+   "demo/launchpad": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iNCIgZmlsbD0iI2U1NDg0ZCIvPjx0ZXh0IHg9IjgiIHk9IjEyIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkw8L3RleHQ+PC9zdmc+",
+   "openai-curated/pixel-forge": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiByeD0iNCIgZmlsbD0iIzNlNjNkZCIvPjx0ZXh0IHg9IjgiIHk9IjEyIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTAiIGZvbnQtd2VpZ2h0PSI3MDAiIGZpbGw9IiNmZmYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlA8L3RleHQ+PC9zdmc+"
+  }
+ }
+}

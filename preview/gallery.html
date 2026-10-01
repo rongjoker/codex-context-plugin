@@ -1,0 +1,133 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Context states</title>
+<style>
+  :root { color-scheme: light; --page: #e9e9ec; --ink: #222; --muted: #0009; --frame: #0002; }
+  body.dark { color-scheme: dark; --page: #0b0b0b; --ink: #ddd; --muted: #fff9; --frame: #fff2; }
+  body { margin: 0; padding: 20px 16px 60px; font: 13px system-ui; background: var(--page); color: var(--ink); }
+  header { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+  h1 { margin: 0; font-size: 18px; }
+  header a { color: inherit; opacity: .7; }
+  h2 { margin: 28px 0 10px; font-size: 14px; font-weight: 600; }
+  .grid { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+  figure { margin: 0; max-width: 100%; }
+  figcaption { margin-bottom: 6px; font-weight: 500; }
+  figcaption small { display: block; font-weight: 400; color: var(--muted); margin-top: 2px; }
+  iframe { border: 1px solid var(--frame); border-radius: 12px; background: transparent; display: block; max-width: 100%; }
+  body.single { padding: 0; background: transparent; }
+  body.single header, body.single h2, body.single figcaption { display: none; }
+  body.single iframe { border: 0; border-radius: 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Context plugin: every state</h1>
+  <span>Real plugin UI, real problem rules, demo data.</span>
+  <a id="theme" href="#"></a>
+</header>
+<main></main>
+<script>
+// Renders each frame of gallery-fixture.json in the real app, through a minimal MCP Apps host.
+// ?theme=dark, ?frame=<key> shows one frame alone (for screenshots).
+const params = new URLSearchParams(location.search);
+const single = params.get("frame");
+if (single) document.body.classList.add("single");
+const theme = params.get("theme") === "dark" ? "dark" : "light";
+if (theme === "dark") document.body.classList.add("dark");
+const toggle = document.getElementById("theme");
+toggle.textContent = theme === "dark" ? "Light theme" : "Dark theme";
+toggle.href = `?theme=${theme === "dark" ? "light" : "dark"}`;
+// Approximations of what Codex resolves its theme tokens to.
+const vars = theme === "dark"
+  ? { "--color-background-primary": "#181818", "--color-background-tertiary": "#303030", "--color-text-primary": "#ffffff", "--color-text-secondary": "#afafaf", "--color-text-tertiary": "#afafaf", "--color-border-primary": "rgba(255,255,255,0.16)", "--color-border-secondary": "rgba(255,255,255,0.08)", "--color-text-warning": "#fb923c", "--color-text-danger": "#f87171", "--color-text-success": "#40c977" }
+  : { "--color-background-primary": "#ffffff", "--color-background-tertiary": "#ececec", "--color-text-primary": "#0d0d0d", "--color-text-secondary": "#5d5d5d", "--color-text-tertiary": "#8f8f8f", "--color-border-primary": "rgba(13,13,13,0.15)", "--color-border-secondary": "rgba(13,13,13,0.08)", "--color-text-warning": "#c2410c", "--color-text-danger": "#d92d20", "--color-text-success": "#00a240" };
+const APP = "../plugins/context/dist/app.html";
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Grow the frame to its content, including an open popover.
+function fit(frame) {
+  const doc = frame.contentDocument;
+  if (!doc?.documentElement) return;
+  const pop = doc.querySelector(".pop:not([hidden])");
+  const bottom = pop ? pop.getBoundingClientRect().bottom + 12 : 0;
+  const height = Math.max(doc.documentElement.scrollHeight, bottom);
+  if (Math.abs(height - frame.height) > 1) frame.height = height;
+}
+
+async function run(frame, steps) {
+  await sleep(700);
+  for (const step of steps ?? []) {
+    frame.contentDocument.querySelector(step.click)?.click();
+    await sleep(step.wait ?? 300);
+    fit(frame);
+  }
+}
+
+(async () => {
+  const { skills, frames: all } = await fetch("gallery-fixture.json").then((r) => r.json());
+  const frames = single ? all.filter((f) => f.key === single) : all;
+  const main = document.querySelector("main");
+  let grid = null;
+  let group = null;
+  for (const spec of frames) {
+    if (spec.group !== group) {
+      group = spec.group;
+      const h2 = document.createElement("h2");
+      h2.textContent = group;
+      grid = document.createElement("div");
+      grid.className = "grid";
+      main.append(h2, grid);
+    }
+    const figure = document.createElement("figure");
+    const caption = document.createElement("figcaption");
+    caption.textContent = spec.caption;
+    if (spec.note) {
+      const note = document.createElement("small");
+      note.textContent = spec.note;
+      caption.append(note);
+    }
+    const frame = document.createElement("iframe");
+    frame.width = spec.width ?? 455;
+    frame.height = 160;
+    figure.append(caption, frame);
+    grid.append(figure);
+
+    const fresh = () => ({ ...spec.snapshot, structuredContent: { ...spec.snapshot.structuredContent, generatedAt: Date.now() } });
+    window.addEventListener("message", async (event) => {
+      if (event.source !== frame.contentWindow) return;
+      const msg = event.data;
+      const reply = (result) => frame.contentWindow.postMessage({ jsonrpc: "2.0", id: msg.id, result }, "*");
+      if (msg.method === "ui/initialize") {
+        reply({ protocolVersion: "2026-01-26", hostInfo: { name: "gallery-host", version: "0" }, hostCapabilities: { serverTools: {}, message: { text: {} } },
+          hostContext: { theme, styles: { variables: vars }, safeAreaInsets: { top: 0, right: 0, bottom: 0, left: 0 }, platform: "desktop", displayMode: spec.view === "inline" ? "inline" : "fullscreen", toolInfo: { tool: { name: spec.tool ?? "context.panel", inputSchema: { type: "object" } } } } });
+      } else if (msg.method === "ui/notifications/initialized") {
+        // skipResult: the host never hands over the first result, so the tab must ask.
+        if (!spec.skipResult) frame.contentWindow.postMessage({ jsonrpc: "2.0", method: "ui/notifications/tool-result", params: fresh() }, "*");
+        // The frame grows to fit, so it never needs its own scrollbar.
+        frame.contentDocument.documentElement.style.overflow = "hidden";
+        new frame.contentWindow.ResizeObserver(() => fit(frame)).observe(frame.contentDocument.body);
+        run(frame, spec.steps);
+      } else if (msg.method === "ui/notifications/size-changed") {
+        fit(frame);
+      } else if (msg.method === "tools/call") {
+        const name = msg.params?.name;
+        if (name === "context.wait") return; // long-polls never fire here
+        if (name === "context.skills" && spec.skills === "never") return;
+        await sleep(400);
+        if (name === "context.skills") reply({ content: [], structuredContent: spec.choices ?? skills });
+        else if (name === "context.setSkill") reply({ content: [], structuredContent: spec.setSkillError ? { enabled: null, error: spec.setSkillError } : { enabled: msg.params.arguments.enabled, error: null } });
+        else reply(fresh());
+        setTimeout(() => fit(frame), 50);
+      } else if (msg.id != null) {
+        reply({});
+      }
+    });
+    frame.src = APP;
+  }
+})();
+</script>
+</body>
+</html>

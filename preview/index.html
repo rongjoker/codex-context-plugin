@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Context preview</title>
+<style>
+  body { margin: 0; padding: 20px; font: 13px system-ui; background: #e9e9ec; color: #222; }
+  body.dark { background: #0b0b0b; color: #ddd; }
+  .wrap { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+  figure { margin: 0; }
+  figcaption { margin-bottom: 6px; opacity: .6; }
+  iframe { border: 1px solid #0002; border-radius: 12px; background: transparent; display: block; }
+</style>
+</head>
+<body>
+<div class="wrap"></div>
+<script>
+// Minimal MCP Apps host: answers ui/initialize, pushes the tool result, answers the app's tools.
+// ?theme=light | dark, ?only=<frame key>. preview/gallery.html shows every state.
+const params = new URLSearchParams(location.search);
+// The demo threads in fixture.json, each in its own frame.
+const plugin = {
+  app: "../plugins/context/dist/app.html",
+  data: "fixture.json",
+  frames: [
+    { key: "panel", caption: "Thread tab (panel)", tool: "context.panel", width: 455, height: 1100 },
+    { key: "inline", caption: "Inline in chat", tool: "context.inspect", width: 640, height: 420 },
+    { key: "legacy", caption: "Old thread", tool: "context.panel", width: 455, height: 480 },
+    { key: "empty", caption: "No thread", tool: "context.panel", width: 455, height: 220 },
+  ],
+};
+const theme = params.get("theme") || "light";
+if (theme === "dark") document.body.classList.add("dark");
+const only = params.get("only");
+// Approximations of what Codex resolves its theme tokens to.
+const vars = theme === "dark"
+  ? { "--color-background-primary": "#181818", "--color-background-tertiary": "#303030", "--color-text-primary": "#ffffff", "--color-text-secondary": "#afafaf", "--color-text-tertiary": "#afafaf", "--color-border-primary": "rgba(255,255,255,0.16)", "--color-border-secondary": "rgba(255,255,255,0.08)", "--color-text-warning": "#fb923c", "--color-text-danger": "#f87171", "--color-text-success": "#40c977" }
+  : { "--color-background-primary": "#ffffff", "--color-background-tertiary": "#ececec", "--color-text-primary": "#0d0d0d", "--color-text-secondary": "#5d5d5d", "--color-text-tertiary": "#8f8f8f", "--color-border-primary": "rgba(13,13,13,0.15)", "--color-border-secondary": "rgba(13,13,13,0.08)", "--color-text-warning": "#c2410c", "--color-text-danger": "#d92d20", "--color-text-success": "#00a240" };
+const snapshots = fetch(plugin.data).then(r => r.json());
+for (const spec of plugin.frames) {
+  if (only && spec.key !== only) continue;
+  const figure = document.createElement("figure");
+  const caption = document.createElement("figcaption");
+  const frame = document.createElement("iframe");
+  caption.textContent = spec.caption;
+  frame.width = spec.width;
+  frame.height = spec.height;
+  figure.append(caption, frame);
+  document.querySelector(".wrap").append(figure);
+  frame.src = plugin.app;
+  window.addEventListener("message", async (event) => {
+    if (event.source !== frame.contentWindow) return;
+    const msg = event.data; const reply = (result) => frame.contentWindow.postMessage({ jsonrpc: "2.0", id: msg.id, result }, "*");
+    const snap = (await snapshots)[spec.key];
+    const fresh = () => ({ ...snap, structuredContent: { ...snap.structuredContent, generatedAt: Date.now() } });
+    if (msg.method === "ui/initialize") {
+      reply({ protocolVersion: "2026-01-26", hostInfo: { name: "preview-host", version: "0" }, hostCapabilities: { serverTools: {}, message: { text: {} } },
+        hostContext: { theme, styles: { variables: vars }, safeAreaInsets: { top: 0, right: 0, bottom: 0, left: 0 }, platform: "desktop", displayMode: spec.key === "inline" ? "inline" : "fullscreen", toolInfo: { tool: { name: spec.tool, inputSchema: { type: "object" } } } } });
+    } else if (msg.method === "ui/notifications/initialized") {
+      frame.contentWindow.postMessage({ jsonrpc: "2.0", method: "ui/notifications/tool-result", params: fresh() }, "*");
+    } else if (msg.method === "tools/call") {
+      const name = msg.params?.name;
+      // Long-polls never fire in the preview; app-only tools answer from the fixture.
+      if (name === "context.wait") return;
+      await new Promise(r => setTimeout(r, 600));
+      if (name === "context.skills") reply({ content: [], structuredContent: (await snapshots).skills });
+      else if (name === "context.setSkill") reply({ content: [], structuredContent: { enabled: msg.params.arguments.enabled, error: null } });
+      else reply(fresh());
+    } else if (msg.method === "ui/message") {
+      caption.textContent = `${spec.caption} · sent: ${msg.params.content.map(c => c.text).join(" ")}`;
+      reply({});
+    } else if (msg.id != null) {
+      reply({});
+    }
+  });
+}
+</script>
+</body>
+</html>
