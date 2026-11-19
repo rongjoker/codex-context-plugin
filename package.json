@@ -1,12 +1,12 @@
 {
   "name": "codex-context-plugin",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Codex plugin that shows what fills a thread's context and what to fix: skills catalog, AGENTS.md, tools and the conversation.",
   "license": "MIT",
   "author": "Dmitry Nehaychik (https://github.com/nnixaa)",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nnixaa/codex-context-plugin.git"
+    "url": "https://github.com/rongjoker/codex-context-plugin.git"
   },
   "private": true,
   "type": "module",
@@ -16,6 +16,7 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "node --test scripts/activity.test.mjs",
     "smoke": "node scripts/smoke.mjs",
     "gallery": "esbuild preview/gallery.ts --bundle --platform=node --format=esm --log-level=warning --outfile=preview/.gallery.mjs && node preview/.gallery.mjs"
   },

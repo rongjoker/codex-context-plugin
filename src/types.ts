@@ -3,6 +3,22 @@
 
 export type View = "panel" | "inline";
 
+export type ContextItem = {
+  kind: "user" | "assistant" | "terminal" | "mcp" | "tool";
+  label: string;
+  tokens: number;
+};
+
+export type ContextTurn = {
+  number: number;
+  status: "in-progress" | "finished" | "interrupted" | "incomplete";
+  inputTokens: number | null;
+  inputDelta: number | null;
+  compacted: boolean;
+  largest: ContextItem[];
+  skippedItems: number;
+};
+
 // A context block the host injects before the conversation, e.g. the AGENTS.md
 // message or the skills catalog. `copies` counts live copies: every re-send stays
 // in context until the next compaction.
@@ -148,6 +164,7 @@ export type ContextSnapshot = {
   };
 
   problems: Problem[]; // most severe first
+  recentTurns?: ContextTurn[];
   notes: string[]; // lesser observations that need no action
   errors: string[];
   generatedAt: number;

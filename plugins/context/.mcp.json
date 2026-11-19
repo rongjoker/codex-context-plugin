@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "context": {
+    "context_dev": {
       "command": "node",
       "args": [
         "./dist/server.js"

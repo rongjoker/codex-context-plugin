@@ -23,7 +23,7 @@ const plugin = {
   app: "../plugins/context/dist/app.html",
   data: "fixture.json",
   frames: [
-    { key: "panel", caption: "Thread tab (panel)", tool: "context.panel", width: 455, height: 1100 },
+    { key: "panel", caption: "Thread tab (panel)", tool: "context.panel", width: 335, height: 1100 },
     { key: "inline", caption: "Inline in chat", tool: "context.inspect", width: 640, height: 420 },
     { key: "legacy", caption: "Old thread", tool: "context.panel", width: 455, height: 480 },
     { key: "empty", caption: "No thread", tool: "context.panel", width: 455, height: 220 },
@@ -45,6 +45,7 @@ for (const spec of plugin.frames) {
   caption.textContent = spec.caption;
   frame.width = spec.width;
   frame.height = spec.height;
+  frame.allow = "clipboard-write";
   figure.append(caption, frame);
   document.querySelector(".wrap").append(figure);
   frame.src = plugin.app;

@@ -38445,6 +38445,116 @@ async function modelLimits(model) {
 // src/server/rollout.ts
 import { open as open2, readdir, stat as stat3 } from "node:fs/promises";
 import { dirname as dirname3, join as join5 } from "node:path";
+
+// src/server/activity.ts
+var RECENT_TURNS = 5;
+var LARGEST_ITEMS = 5;
+var PENDING_CALLS = 128;
+function textTokens(content) {
+  if (typeof content === "string") return countTokens(content);
+  if (!Array.isArray(content)) return 0;
+  return content.reduce((total2, part) => total2 + (typeof part?.text === "string" ? countTokens(part.text) : 0), 0);
+}
+function toolLabel(item) {
+  if (typeof item.name !== "string" || !item.name) return null;
+  const namespace = typeof item.namespace === "string" ? item.namespace : "";
+  const qualified = item.name.startsWith("mcp__") ? item.name : `${namespace}${namespace.endsWith("__") ? "" : "__"}${item.name}`;
+  const mcp = /^mcp__(.+?)__(.+)$/.exec(qualified);
+  if (mcp) return { kind: "mcp", label: `${mcp[1]} / ${mcp[2]}` };
+  if (item.name === "exec_command" || item.name === "write_stdin" || item.name === "shell") {
+    return { kind: "terminal", label: item.name };
+  }
+  return { kind: "tool", label: item.name };
+}
+var RecentActivity = class {
+  number = 0;
+  previousInput = null;
+  active = null;
+  activeId;
+  recent = [];
+  calls = /* @__PURE__ */ new Map();
+  start(id) {
+    if (this.active && (this.activeId === void 0 || this.activeId === id)) {
+      this.activeId ??= id;
+      return;
+    }
+    this.finish("incomplete");
+    this.activeId = id;
+    this.active = {
+      number: ++this.number,
+      status: "in-progress",
+      inputTokens: null,
+      inputDelta: null,
+      compacted: false,
+      largest: [],
+      skippedItems: 0
+    };
+  }
+  request(input2) {
+    if (!this.active) this.start();
+    const turn = this.active;
+    turn.inputTokens = input2;
+    turn.inputDelta = this.previousInput === null ? null : input2 - this.previousInput;
+  }
+  message(item, content = item.content) {
+    if (item.role === "user") this.add({ kind: "user", label: "User message", tokens: textTokens(content) });
+    if (item.role === "assistant") this.add({ kind: "assistant", label: "Assistant response", tokens: textTokens(content) });
+  }
+  tool(item) {
+    const name = toolLabel(item);
+    const id = typeof item.call_id === "string" ? item.call_id : null;
+    if (item.type === "function_call" || item.type === "custom_tool_call") {
+      if (id && name) {
+        if (this.calls.size >= PENDING_CALLS) {
+          const oldest = this.calls.keys().next();
+          if (!oldest.done) this.calls.delete(oldest.value);
+        }
+        this.calls.set(id, name);
+      }
+    } else {
+      const source = name ?? (id ? this.calls.get(id) : null) ?? { kind: "tool", label: "Unattributed tool result" };
+      if (id) this.calls.delete(id);
+      this.add({ ...source, tokens: textTokens(item.output) });
+    }
+  }
+  skipItem() {
+    if (!this.active) this.start();
+    this.active.skippedItems++;
+  }
+  compacted() {
+    this.previousInput = null;
+    if (!this.active) this.start();
+    const turn = this.active;
+    turn.inputTokens = null;
+    turn.inputDelta = null;
+    turn.compacted = true;
+  }
+  finish(status, id) {
+    const turn = this.active;
+    if (!turn || id && this.activeId && id !== this.activeId) return;
+    this.active = null;
+    this.activeId = void 0;
+    turn.status = status;
+    if (turn.inputTokens !== null) this.previousInput = turn.inputTokens;
+    if (turn.inputTokens === null && !turn.compacted && !turn.largest.length && !turn.skippedItems) return;
+    this.recent.push(turn);
+    if (this.recent.length > RECENT_TURNS) this.recent.shift();
+  }
+  result() {
+    const turns = this.active ? [...this.recent, this.active] : this.recent;
+    return turns.slice(-RECENT_TURNS).reverse().map((turn) => ({ ...turn, largest: [...turn.largest] }));
+  }
+  add(item) {
+    if (!item.tokens) return;
+    if (!this.active) this.start();
+    const largest = this.active.largest;
+    largest.push(item);
+    largest.sort((a, b) => b.tokens - a.tokens);
+    if (largest.length > LARGEST_ITEMS) largest.pop();
+  }
+};
+
+// src/server/rollout.ts
 var GROWTH_TURNS = 5;
 var TAGS = [
   ["# AGENTS.md instructions", "agents"],
@@ -38522,6 +38632,7 @@ var Parser = class {
   turnBase = null;
   // context size the current turn grows from
   deltas = [];
+  activity = new RecentActivity();
   route(head) {
     const match = HEAD.exec(head);
     if (!match) return "parse";
@@ -38529,12 +38640,13 @@ var Parser = class {
     switch (type) {
       case "response_item": {
         if (this.collecting) return "parse";
+        if (payloadType === "function_call" || payloadType === "custom_tool_call" || payloadType === "function_call_output" || payloadType === "custom_tool_call_output") return "activity";
         if (payloadType !== "message") return "skip";
         const role = ROLE.exec(head)?.[1];
-        return role === "user" ? "tagged" : role === "assistant" ? "skip" : "parse";
+        return role === "user" ? "tagged" : role === "assistant" ? "activity" : "parse";
       }
       case "event_msg":
-        return payloadType === "token_count" || payloadType === "task_complete" ? "parse" : "skip";
+        return payloadType === "token_count" || payloadType === "task_started" || payloadType === "task_complete" || payloadType === "turn_aborted" ? "parse" : "skip";
       case "session_meta":
       case "world_state":
         return "parse";
@@ -38547,12 +38659,16 @@ var Parser = class {
   // For a line too long to buffer whole: skip it, or skip it but note its place (compactions).
   wants(head) {
     const route = this.route(head.toString("latin1", 0, Math.min(head.length, HEAD_BYTES)));
-    return route === "skip" ? "skip" : route === "compacted" ? "place" : "keep";
+    if (route === "skip" || route === "activity") return route;
+    return route === "compacted" ? "place" : "keep";
+  }
+  skippedActivity() {
+    this.activity.skipItem();
   }
   feed(line, place) {
     const route = this.route(line.toString("latin1", 0, Math.min(line.length, HEAD_BYTES)));
     if (route === "skip") return;
-    if (route === "tagged" && !TAG_TEXT.some((tag) => line.includes(tag))) return;
+    if (line.length > BIG_LINE && (route === "activity" || route === "tagged" && !TAG_TEXT.some((tag) => line.includes(tag)))) return this.skippedActivity();
     if (route === "compacted") return this.compacted(place);
     let record3;
     try {
@@ -38568,7 +38684,11 @@ var Parser = class {
         return this.item(payload);
       case "event_msg":
         if (payload?.type === "token_count") this.tokenCount(payload.info);
-        else if (payload?.type === "task_complete") this.turnEnd();
+        else if (payload?.type === "task_started") this.activity.start(payload.turn_id);
+        else if (payload?.type === "task_complete") {
+          this.turnEnd();
+          this.activity.finish("finished", payload.turn_id);
+        } else if (payload?.type === "turn_aborted") this.activity.finish("interrupted", payload.turn_id);
         return;
       case "world_state":
         return this.worldState(payload);
@@ -38598,19 +38718,32 @@ var Parser = class {
     else if (key === "skills") this.lastSkills = text;
   }
   parts(message3, first, ledger = this.ledger) {
+    const userParts = [];
     for (const part of Array.isArray(message3.content) ? message3.content : []) {
       if (typeof part?.text !== "string") continue;
-      const key = blockKey(message3.role, part.text);
+      const key = blockKey(message3.role ?? "", part.text);
       if (key) this.add(key, part.text, ledger);
-      else if (first) this.userTokens += countTokens(part.text);
+      else {
+        if (first) this.userTokens += countTokens(part.text);
+        userParts.push({ text: part.text });
+      }
     }
+    return userParts;
   }
   item(payload) {
     if (payload?.type === "message") {
-      if (payload.role === "assistant") this.modelOutput();
-      else if (payload.role === "developer" || payload.role === "user") this.parts(payload, this.collecting);
+      if (payload.role === "assistant") {
+        this.modelOutput();
+        this.activity.message(payload);
+      } else if (payload.role === "developer" || payload.role === "user") {
+        const parts = this.parts(payload, this.collecting);
+        if (payload.role === "user") this.activity.message(payload, parts);
+      }
     } else if (typeof payload?.type === "string" && (payload.type === "reasoning" || payload.type.endsWith("_call"))) {
       this.modelOutput();
+      if (payload.type === "function_call" || payload.type === "custom_tool_call") this.activity.tool(payload);
+    } else if (payload?.type === "function_call_output" || payload?.type === "custom_tool_call_output") {
+      this.activity.tool(payload);
     }
   }
   modelOutput() {
@@ -38622,6 +38755,7 @@ var Parser = class {
     if (typeof info?.model_context_window === "number") this.contextWindow = info.model_context_window;
     const input2 = info?.last_token_usage?.input_tokens;
     if (typeof input2 !== "number" || input2 <= 0) return;
+    this.activity.request(input2);
     const output2 = info?.last_token_usage?.output_tokens;
     this.lastTotal = input2 + (typeof output2 === "number" ? output2 : 0);
     this.turnBase ??= input2;
@@ -38663,6 +38797,7 @@ var Parser = class {
   }
   compacted(place) {
     this.compactions++;
+    this.activity.compacted();
     this.turnBase = null;
     this.lastTotal = null;
     this.request += 2;
@@ -38730,6 +38865,7 @@ var Parser = class {
       agents,
       skillsCatalog,
       historyMissing: !this.fromBase,
+      recentTurns: this.activity.result(),
       latestTotal: this.lastTotal,
       growth: this.deltas.length ? { perMessage: Math.round(this.deltas.reduce((sum, d2) => sum + d2, 0) / this.deltas.length), samples: this.deltas.length } : null
     };
@@ -38816,6 +38952,7 @@ async function scan(path, from, end, parser) {
     let pending = 0;
     let skipping = false;
     let placing = false;
+    let skippedActivity = false;
     for (; ; ) {
       const want = end === null ? chunk.length : Math.min(chunk.length, end - position);
       if (want <= 0) break;
@@ -38826,6 +38963,7 @@ async function scan(path, from, end, parser) {
       for (let newline = data.indexOf(NEWLINE); newline >= 0; newline = data.indexOf(NEWLINE, start)) {
         const place = { path, start: lineStart, end: position + newline };
         if (placing) parser.compacted(place);
+        else if (skippedActivity) parser.skippedActivity();
         else if (!skipping) {
           const piece = data.subarray(start, newline);
           parser.feed(parts.length ? Buffer.concat([...parts, piece]) : piece, place);
@@ -38834,6 +38972,7 @@ async function scan(path, from, end, parser) {
         pending = 0;
         skipping = false;
         placing = false;
+        skippedActivity = false;
         start = newline + 1;
         lineStart = position + start;
       }
@@ -38844,6 +38983,7 @@ async function scan(path, from, end, parser) {
         if (want2 !== "keep") {
           skipping = true;
           placing = want2 === "place";
+          skippedActivity = want2 === "activity";
           parts = [];
         }
       }
@@ -39396,6 +39536,7 @@ async function contextSnapshot(view, threadId, since) {
     now,
     agents: agents.agents,
     skills,
+    recentTurns: rollout?.recentTurns ?? [],
     compaction,
     problems: findProblems({ now, contextWindow, agents: agents.agents, skills }),
     notes: agents.notes,
@@ -39585,7 +39726,7 @@ var AppServer = class {
 };
 
 // src/server/choices.ts
-var codex = new AppServer({ name: "codex-context-plugin", title: "Context", version: "0.4.0" });
+var codex = new AppServer({ name: "codex-context-plugin", title: "Context", version: "0.5.0" });
 var message2 = (error62) => error62 instanceof Error ? error62.message : String(error62);
 function sourceOf(path, cwd) {
   const unix = path.replace(/\\/g, "/");
@@ -39704,7 +39845,7 @@ function shutdownChoices() {
 }
 
 // src/server/index.ts
-var UI = `ui://context/app-${"0.4.0"}`;
+var UI = `ui://context/app-${"0.5.0"}`;
 var LARGEST_SKILLS = 10;
 var lastHtml = await readFile5(new URL("./app.html", import.meta.url), "utf8");
 async function appHtml() {
@@ -39735,7 +39876,7 @@ function summary(s) {
   if (s.now) {
     lines.push(`Latest request: ${s.now.inputTokens} input tokens${percent(s.now.inputTokens, s.contextWindow)}, ${s.now.compactions} compactions so far.`);
     lines.push(`- ${s.now.blocks.map(blockText).join("; ")}`);
-    lines.push(`- Tools and framing ${s.now.toolsTokens} (from the first request); conversation ${s.now.conversationTokens}.`);
+    lines.push(`- Estimated tools and framing ${s.now.toolsTokens} (from the first request). Estimated conversation ${s.now.conversationTokens}.`);
   }
   const c = s.compaction;
   if (c) {
@@ -39745,7 +39886,7 @@ function summary(s) {
   if (s.start) {
     lines.push(`First request: ${s.start.inputTokens} input tokens = context blocks + first message ${s.start.userTokens} + tools and framing ${s.start.toolsTokens}.`);
     lines.push(`- ${s.start.blocks.map(blockText).join("; ")}`);
-    lines.push("- Tools and framing is the measured remainder: tool definitions and message framing, which Codex does not log.");
+    lines.push("- Tools and framing is an estimate from the first-request remainder. The exact tool definitions and message framing are unavailable.");
   }
   const a = s.agents;
   lines.push(
@@ -39791,18 +39932,19 @@ function prewarm(s) {
 }
 var snapshot = (view, threadId, since) => contextSnapshot(view, threadId, since).then(prewarm).then(result);
 var server = new McpServer({
-  name: "context",
-  title: "Context",
-  version: "0.4.0",
+  name: "context-dev",
+  title: "Context Dev",
+  version: "0.5.0",
   icons: [icon]
 });
-N3(server, "Context", UI, {}, async () => ({
+N3(server, "Context Dev", UI, {}, async () => ({
   contents: [
     {
       uri: UI,
       mimeType: p,
       text: await appHtml(),
       _meta: {
+        ui: { permissions: { clipboardWrite: {} } },
         "openai/ui": { availableDisplayModes: ["inline", "fullscreen"] }
       }
     }
@@ -39811,7 +39953,7 @@ N3(server, "Context", UI, {}, async () => ({
 server.registerTool(
   "context.panel",
   {
-    title: "Context",
+    title: "Context Dev",
     description: "Show what fills this conversation's context beside it.",
     inputSchema: external_exports.object({}),
     annotations: readonly2,

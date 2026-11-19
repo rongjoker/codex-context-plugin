@@ -1,20 +1,20 @@
 {
-  "name": "context",
-  "version": "0.4.0",
+  "name": "context-dev",
+  "version": "0.5.0",
   "description": "See what fills a Codex thread's context: the skills catalog, AGENTS.md files, tools and the conversation.",
   "author": {
     "name": "Dmitry Nehaychik",
     "url": "https://github.com/nnixaa"
   },
-  "homepage": "https://github.com/nnixaa/codex-context-plugin",
+  "homepage": "https://github.com/rongjoker/codex-context-plugin",
   "license": "MIT",
   "mcpServers": "./.mcp.json",
   "interface": {
-    "displayName": "Context",
+    "displayName": "Context Dev",
     "shortDescription": "What fills your thread's context, and what to fix",
     "longDescription": "Breaks down a thread's context: the conversation, tools, the skills catalog, AGENTS.md files and Codex's own instructions. Flags what wastes it, such as a full or resent skills catalog, duplicate skills and AGENTS.md cut off by the size limit, estimates how many messages are left before Codex compacts the thread, and lists every skill with its cost and last use so you can turn unused ones off.",
-    "developerName": "Dmitry Nehaychik",
-    "websiteUrl": "https://github.com/nnixaa/codex-context-plugin",
+    "developerName": "rongjoker",
+    "websiteUrl": "https://github.com/rongjoker/codex-context-plugin",
     "category": "Developer Tools",
     "capabilities": [
       "Interactive",
@@ -24,7 +24,7 @@
     "composerIcon": "./assets/icon.svg",
     "logo": "./assets/icon.svg",
     "defaultPrompt": [
-      "@Context what is using my context?"
+      "@Context Dev what is using my context?"
     ]
   }
 }

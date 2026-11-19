@@ -1,12 +1,14 @@
-# Codex Context
+# Codex Context Dev
 
-A Codex plugin that shows what fills a thread's context and what wastes it: the skills catalog, AGENTS.md files, tools and the conversation. Built on OpenAI [plugin extensions](https://developers.openai.com/plugins/build/extensions).
+Private development fork of [Codex Context](https://github.com/nnixaa/codex-context-plugin), distributed under its MIT license. The plugin shows what fills a Codex thread's context.
 
-<img src="docs/screenshot.png" width="420" alt="Context tab beside a thread">
+<img src="docs/screenshot.png" width="420" alt="Upstream Context tab beside a thread">
 
 ## What it shows
 
 - **What's in context.** The conversation, tools, the skills catalog, Codex's system prompt and AGENTS.md, as a chart of the latest request.
+- **Recent context growth.** Open one of the last five recorded turns to see the biggest recorded user messages, assistant responses, and terminal or tool outputs. MCP results identify the server and tool when the transcript provides a name or matching call ID. The change uses the last input count Codex recorded for each turn within the same context window. Item counts cover visible text only. Oversized records are reported separately.
+- **Copy /compact.** Copies the native command so you can paste it into the chat and run it. If clipboard access is unavailable, type `/compact` in the chat.
 - **Messages until compaction.** About how many more messages fit before Codex compacts the thread and keeps only a summary.
 - **Issues.** Each one is a row with its cost per request; ⓘ explains why and how it was measured. A colored count next to the title shows when there are any.
   - The skills catalog fills its budget, so Codex shortens every description.
@@ -16,24 +18,25 @@ A Codex plugin that shows what fills a thread's context and what wastes it: the 
   - The context is close to full.
 - **Every skill.** Its source (your folder, a plugin, built in), tokens and when you last used it, unused first, with a switch to turn it off.
 
-Open it from a thread's side panel: `+` → **Context**, or ask in the chat: `@Context what is using my context?`
+Open it from a thread's side panel with `+` → **Context Dev**, or select **Context Dev** from the composer's `@` menu and ask what is using the current context.
 
 ## Install
 
 Requirements: the ChatGPT desktop app with Codex, and Node.js 22.5+ on your `PATH`. Tested on macOS.
 
 ```sh
-codex plugin marketplace add nnixaa/codex-context-plugin
-codex plugin add context@codex-context
+codex plugin marketplace add .
+codex plugin add context-dev@rongjoker-context
 ```
 
-Quit and reopen the app, then open any thread and add **Context** from the side panel's `+` menu.
+Run these commands from this repository. Quit and reopen the app, then open any thread and add **Context Dev** from the side panel's `+` menu.
 
 Update:
 
 ```sh
-codex plugin marketplace upgrade codex-context
-codex plugin add context@codex-context
+git pull --ff-only
+codex plugin marketplace add .
+codex plugin add context-dev@rongjoker-context
 ```
 
 Codex keeps plugin servers and pages running across reinstalls, so quit and reopen the app after updating.
@@ -41,13 +44,13 @@ Codex keeps plugin servers and pages running across reinstalls, so quit and reop
 Remove:
 
 ```sh
-codex plugin remove context@codex-context
-codex plugin marketplace remove codex-context
+codex plugin remove context-dev@rongjoker-context
+codex plugin marketplace remove rongjoker-context
 ```
 
 ## How it measures
 
-Totals come from Codex itself: the `token_count` it records for every request. The plugin splits them using the thread's own history in `~/.codex/sessions`, counting text with the o200k tokenizer, and applies Codex's rules for the skills budget (2% of the context window), AGENTS.md (32 KB shared by project files) and compaction (90% of the window unless the model or your config sets it).
+Input totals come from the `token_count` events recorded by Codex. The plugin counts visible text with the o200k tokenizer or estimates it from UTF-8 bytes if the tokenizer is unavailable. Conversation is a residual estimate. Tools estimates tool definitions and protocol framing from the first request. The recent-turn item counts cover recorded text in each turn and do not reconcile to the request total. Images and unrecorded nested tool calls have no individual counts.
 
 Issues marked "Measured" come from that data. The rest use a threshold the plugin chose, and ⓘ says so. The messages-left estimate assumes each message adds 1.5× your recent average; checked against past threads, it's right on average but one heavy message can shift it by a few.
 
@@ -75,7 +78,7 @@ npm install
 npm run build        # bundles the plugin into plugins/context
 npm run smoke        # starts the built server and calls its tools; pass a thread id to pick one
 codex plugin marketplace add .
-codex plugin add context@codex-context
+codex plugin add context-dev@rongjoker-context
 ```
 
 `src/server` is the MCP server; `src/app` is the page Codex renders. To work on the page in a browser, serve the repository root and open:

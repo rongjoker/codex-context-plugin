@@ -6,7 +6,8 @@
 import { open, readdir, stat } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { codexHome } from "./paths.js";
-import type { Block } from "../types.js";
+import type { Block, ContextTurn } from "../types.js";
+import { RecentActivity, type LoggedItem } from "./activity.js";
 import { countTokens } from "./tokens.js";
 
 export type BlockKey = Exclude<Block["key"], "system">;
@@ -25,6 +26,7 @@ export type Rollout = {
   // the mean growth over the last few completed turns, measured between compactions.
   latestTotal: number | null;
   growth: { perMessage: number; samples: number } | null;
+  recentTurns: ContextTurn[];
 };
 
 const GROWTH_TURNS = 5;
@@ -88,7 +90,7 @@ const HEAD = /"type":"([a-z_]+)","payload":\{(?:"type":"([a-z_]+)")?/;
 const ROLE = /"role":"([a-z]+)"/;
 const TAG_TEXT = ['"text":"<', `"text":"${AGENTS_HEADER}`].map((tag) => Buffer.from(tag));
 
-type Route = "parse" | "tagged" | "compacted" | "skip";
+type Route = "parse" | "tagged" | "activity" | "compacted" | "skip";
 // Where a compacted record sits, so it can be read back without holding it in memory.
 type Place = { path: string; start: number; end: number };
 type Compaction = { place: Place | null; tallies: Map<BlockKey, Tally> | null };
@@ -117,6 +119,7 @@ class Parser {
   private lastTotal: number | null = null;
   private turnBase: number | null = null; // context size the current turn grows from
   private deltas: number[] = [];
+  private activity = new RecentActivity();
 
   constructor(readonly fromBase: boolean) {
     this.collecting = fromBase;
@@ -129,12 +132,15 @@ class Parser {
     switch (type) {
       case "response_item": {
         if (this.collecting) return "parse";
+        if (payloadType === "function_call" || payloadType === "custom_tool_call"
+          || payloadType === "function_call_output" || payloadType === "custom_tool_call_output") return "activity";
         if (payloadType !== "message") return "skip";
         const role = ROLE.exec(head)?.[1];
-        return role === "user" ? "tagged" : role === "assistant" ? "skip" : "parse";
+        return role === "user" ? "tagged" : role === "assistant" ? "activity" : "parse";
       }
       case "event_msg":
-        return payloadType === "token_count" || payloadType === "task_complete" ? "parse" : "skip";
+        return payloadType === "token_count" || payloadType === "task_started"
+          || payloadType === "task_complete" || payloadType === "turn_aborted" ? "parse" : "skip";
       case "session_meta":
       case "world_state":
         return "parse";
@@ -146,16 +152,21 @@ class Parser {
   }
 
   // For a line too long to buffer whole: skip it, or skip it but note its place (compactions).
-  wants(head: Buffer): "keep" | "place" | "skip" {
+  wants(head: Buffer): "keep" | "place" | "skip" | "activity" {
     const route = this.route(head.toString("latin1", 0, Math.min(head.length, HEAD_BYTES)));
-    return route === "skip" ? "skip" : route === "compacted" ? "place" : "keep";
+    if (route === "skip" || route === "activity") return route;
+    return route === "compacted" ? "place" : "keep";
+  }
+
+  skippedActivity(): void {
+    this.activity.skipItem();
   }
 
   feed(line: Buffer, place: Place): void {
     const route = this.route(line.toString("latin1", 0, Math.min(line.length, HEAD_BYTES)));
     if (route === "skip") return;
-    // Most user messages are the conversation; parse only those that open with a context tag.
-    if (route === "tagged" && !TAG_TEXT.some((tag) => line.includes(tag))) return;
+    if (line.length > BIG_LINE && (route === "activity"
+      || (route === "tagged" && !TAG_TEXT.some((tag) => line.includes(tag))))) return this.skippedActivity();
     if (route === "compacted") return this.compacted(place);
     let record;
     try {
@@ -171,7 +182,11 @@ class Parser {
         return this.item(payload);
       case "event_msg":
         if (payload?.type === "token_count") this.tokenCount(payload.info);
-        else if (payload?.type === "task_complete") this.turnEnd();
+        else if (payload?.type === "task_started") this.activity.start(payload.turn_id);
+        else if (payload?.type === "task_complete") {
+          this.turnEnd();
+          this.activity.finish("finished", payload.turn_id);
+        } else if (payload?.type === "turn_aborted") this.activity.finish("interrupted", payload.turn_id);
         return;
       case "world_state":
         return this.worldState(payload);
@@ -203,21 +218,34 @@ class Parser {
     else if (key === "skills") this.lastSkills = text;
   }
 
-  private parts(message: any, first: boolean, ledger = this.ledger): void {
+  private parts(message: LoggedItem, first: boolean, ledger = this.ledger): { text: string }[] {
+    const userParts: { text: string }[] = [];
     for (const part of Array.isArray(message.content) ? message.content : []) {
       if (typeof part?.text !== "string") continue;
-      const key = blockKey(message.role, part.text);
+      const key = blockKey(message.role ?? "", part.text);
       if (key) this.add(key, part.text, ledger);
-      else if (first) this.userTokens += countTokens(part.text);
+      else {
+        if (first) this.userTokens += countTokens(part.text);
+        userParts.push({ text: part.text });
+      }
     }
+    return userParts;
   }
 
-  private item(payload: any): void {
+  private item(payload: LoggedItem | null | undefined): void {
     if (payload?.type === "message") {
-      if (payload.role === "assistant") this.modelOutput();
-      else if (payload.role === "developer" || payload.role === "user") this.parts(payload, this.collecting);
+      if (payload.role === "assistant") {
+        this.modelOutput();
+        this.activity.message(payload);
+      } else if (payload.role === "developer" || payload.role === "user") {
+        const parts = this.parts(payload, this.collecting);
+        if (payload.role === "user") this.activity.message(payload, parts);
+      }
     } else if (typeof payload?.type === "string" && (payload.type === "reasoning" || payload.type.endsWith("_call"))) {
       this.modelOutput();
+      if (payload.type === "function_call" || payload.type === "custom_tool_call") this.activity.tool(payload);
+    } else if (payload?.type === "function_call_output" || payload?.type === "custom_tool_call_output") {
+      this.activity.tool(payload);
     }
   }
 
@@ -232,6 +260,7 @@ class Parser {
     const input = info?.last_token_usage?.input_tokens;
     // A compaction resets usage with a zero record; it measures no request.
     if (typeof input !== "number" || input <= 0) return;
+    this.activity.request(input);
     const output = info?.last_token_usage?.output_tokens;
     this.lastTotal = input + (typeof output === "number" ? output : 0);
     this.turnBase ??= input;
@@ -276,6 +305,7 @@ class Parser {
 
   compacted(place: Place): void {
     this.compactions++;
+    this.activity.compacted();
     // Growth across a compaction means nothing; the next request starts a new base.
     this.turnBase = null;
     this.lastTotal = null;
@@ -348,6 +378,7 @@ class Parser {
       agents,
       skillsCatalog,
       historyMissing: !this.fromBase,
+      recentTurns: this.activity.result(),
       latestTotal: this.lastTotal,
       growth: this.deltas.length
         ? { perMessage: Math.round(this.deltas.reduce((sum, d) => sum + d, 0) / this.deltas.length), samples: this.deltas.length }
@@ -452,6 +483,7 @@ async function scan(path: string, from: number, end: number | null, parser: Pars
     let pending = 0;
     let skipping = false;
     let placing = false;
+    let skippedActivity = false;
     for (;;) {
       const want = end === null ? chunk.length : Math.min(chunk.length, end - position);
       if (want <= 0) break;
@@ -462,6 +494,7 @@ async function scan(path: string, from: number, end: number | null, parser: Pars
       for (let newline = data.indexOf(NEWLINE); newline >= 0; newline = data.indexOf(NEWLINE, start)) {
         const place = { path, start: lineStart, end: position + newline };
         if (placing) parser.compacted(place);
+        else if (skippedActivity) parser.skippedActivity();
         else if (!skipping) {
           const piece = data.subarray(start, newline);
           parser.feed(parts.length ? Buffer.concat([...parts, piece]) : piece, place);
@@ -470,6 +503,7 @@ async function scan(path: string, from: number, end: number | null, parser: Pars
         pending = 0;
         skipping = false;
         placing = false;
+        skippedActivity = false;
         start = newline + 1;
         lineStart = position + start;
       }
@@ -481,6 +515,7 @@ async function scan(path: string, from: number, end: number | null, parser: Pars
         if (want !== "keep") {
           skipping = true;
           placing = want === "place";
+          skippedActivity = want === "activity";
           parts = [];
         }
       }

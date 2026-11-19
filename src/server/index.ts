@@ -51,7 +51,7 @@ function summary(s: ContextSnapshot): string {
   if (s.now) {
     lines.push(`Latest request: ${s.now.inputTokens} input tokens${percent(s.now.inputTokens, s.contextWindow)}, ${s.now.compactions} compactions so far.`);
     lines.push(`- ${s.now.blocks.map(blockText).join("; ")}`);
-    lines.push(`- Tools and framing ${s.now.toolsTokens} (from the first request); conversation ${s.now.conversationTokens}.`);
+    lines.push(`- Estimated tools and framing ${s.now.toolsTokens} (from the first request). Estimated conversation ${s.now.conversationTokens}.`);
   }
   const c = s.compaction;
   if (c) {
@@ -61,7 +61,7 @@ function summary(s: ContextSnapshot): string {
   if (s.start) {
     lines.push(`First request: ${s.start.inputTokens} input tokens = context blocks + first message ${s.start.userTokens} + tools and framing ${s.start.toolsTokens}.`);
     lines.push(`- ${s.start.blocks.map(blockText).join("; ")}`);
-    lines.push("- Tools and framing is the measured remainder: tool definitions and message framing, which Codex does not log.");
+    lines.push("- Tools and framing is an estimate from the first-request remainder. The exact tool definitions and message framing are unavailable.");
   }
 
   const a = s.agents;
@@ -117,19 +117,20 @@ const snapshot = (view: View, threadId: string | undefined, since?: number) =>
   contextSnapshot(view, threadId, since).then(prewarm).then(result);
 
 const server = new McpServer({
-  name: "context",
-  title: "Context",
+  name: "context-dev",
+  title: "Context Dev",
   version: __VERSION__,
   icons: [icon],
 });
 
-registerAppResource(server, "Context", UI, {}, async () => ({
+registerAppResource(server, "Context Dev", UI, {}, async () => ({
   contents: [
     {
       uri: UI,
       mimeType: RESOURCE_MIME_TYPE,
       text: await appHtml(),
       _meta: {
+        ui: { permissions: { clipboardWrite: {} } },
         "openai/ui": { availableDisplayModes: ["inline", "fullscreen"] } satisfies OpenAIUiResourceMetadata,
       },
     },
@@ -139,7 +140,7 @@ registerAppResource(server, "Context", UI, {}, async () => ({
 server.registerTool(
   "context.panel",
   {
-    title: "Context",
+    title: "Context Dev",
     description: "Show what fills this conversation's context beside it.",
     inputSchema: z.object({}),
     annotations: readonly,

@@ -17,6 +17,40 @@
    },
    "contextWindow": 258400,
    "exactTokens": true,
+   "recentTurns": [
+    {
+     "number": 19,
+     "status": "finished",
+     "inputTokens": 67321,
+     "inputDelta": 12432,
+     "compacted": false,
+     "largest": [
+      { "kind": "mcp", "label": "example_logs / search", "tokens": 8405 },
+      { "kind": "terminal", "label": "exec_command", "tokens": 2940 },
+      { "kind": "assistant", "label": "Assistant response", "tokens": 651 },
+      { "kind": "user", "label": "User message", "tokens": 110 }
+     ],
+     "skippedItems": 0
+    },
+    {
+     "number": 18,
+     "status": "finished",
+     "inputTokens": 54889,
+     "inputDelta": null,
+     "compacted": false,
+     "largest": [],
+     "skippedItems": 1
+    },
+    {
+     "number": 17,
+     "status": "finished",
+     "inputTokens": null,
+     "inputDelta": null,
+     "compacted": true,
+     "largest": [],
+     "skippedItems": 0
+    }
+   ],
    "start": {
     "inputTokens": 31618,
     "blocks": [

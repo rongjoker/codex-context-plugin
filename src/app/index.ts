@@ -1,6 +1,6 @@
 import { App, applyDocumentTheme, applyHostFonts, applyHostStyleVariables } from "@modelcontextprotocol/ext-apps";
 import { messagesLeftText } from "../format.js";
-import type { AgentsFile, Block, ContextSnapshot, Problem, SkillChoice, SkillChoices, View } from "../types.js";
+import type { AgentsFile, Block, ContextItem, ContextSnapshot, ContextTurn, Problem, SkillChoice, SkillChoices, View } from "../types.js";
 
 // The tab refreshes when the thread records a new model request (the server watches the
 // rollout file and answers a long-poll) and when it becomes visible again; no timer polling.
@@ -16,6 +16,7 @@ const app = new App({ name: "context", version: "0.2.0" });
 const root = document.getElementById("context-app")!;
 let state: ContextSnapshot | null = null;
 let loading = false;
+let compactCopy: "copied" | "unavailable" | null = null;
 // The open row: a problem or a context section.
 let openRow: string | null = null;
 let choices: SkillChoices | null = null;
@@ -60,7 +61,7 @@ function updatedText(ms: number): string {
 
 // ---------- what fills the context ----------
 
-type Slice = { key: string; label: string; tokens: number; hint?: string };
+type Slice = { key: string; label: string; tokens: number; hint?: string; estimated?: boolean };
 
 const live = (b: Block) => b.tokens * b.copies;
 
@@ -72,8 +73,8 @@ function slices(s: ContextSnapshot): Slice[] {
   const named = new Set<Block["key"]>(["system", "skills", "agents"]);
   const other = n.blocks.filter((b) => !named.has(b.key)).reduce((sum, b) => sum + live(b), 0);
   return [
-    { key: "conv", label: "Conversation", tokens: n.conversationTokens, hint: "Messages, tool calls and their output" },
-    { key: "tools", label: "Tools", tokens: n.toolsTokens, hint: "Tool definitions and protocol framing, measured on the first request" },
+    { key: "conv", label: "Conversation", tokens: n.conversationTokens, hint: "Estimated from input tokens after subtracting other categories", estimated: true },
+    { key: "tools", label: "Tools", tokens: n.toolsTokens, hint: "Estimated tool definitions and protocol framing from the first request", estimated: true },
     { key: "skills", label: "Skills catalog", tokens: pick("skills"), hint: "One line per installed skill" },
     { key: "system", label: "System prompt", tokens: pick("system"), hint: "Codex's own instructions" },
     { key: "agents", label: "AGENTS.md", tokens: pick("agents"), hint: "Your instruction files" },
@@ -114,7 +115,7 @@ function overview(s: ContextSnapshot, size: number): string {
       (p) => `
       <li title="${esc(p.hint ?? "")}">
         <i class="c-${p.key}"></i><span class="name">${esc(p.label)}</span>
-        <span class="num">${p.key === "conv" ? compact(p.tokens) : tk(p.tokens)}</span><span class="share">${Math.round(pct(p.tokens, n.inputTokens))}%</span>
+        <span class="num">${p.estimated ? `~${compact(p.tokens)}` : tk(p.tokens)}</span><span class="share">${Math.round(pct(p.tokens, n.inputTokens))}%</span>
       </li>`,
     )
     .join("");
@@ -133,8 +134,11 @@ function overview(s: ContextSnapshot, size: number): string {
       </div>
       <div class="side">
         <ul class="legend">${legend}${free}</ul>
+        <div class="sub small">Total recorded by Codex. ~ marks estimates.</div>
         ${soon}
         ${compactions}
+        <button class="link compact-copy" type="button" data-action="copy-compact">Copy <code>/compact</code></button>
+        ${compactCopy ? `<div class="sub small" role="status">${compactCopy === "copied" ? "Paste the command in the chat and press Enter." : "Clipboard unavailable. Type /compact in the chat."}</div>` : ""}
       </div>
     </section>`;
 }
@@ -163,6 +167,9 @@ function row(id: string, kind: Problem["severity"] | "plain", title: string, val
 
 // What the ⓘ of a context row says.
 function rowInfo(id: string, s: ContextSnapshot): string | null {
+  if (id.startsWith("turn-")) {
+    return "Input and change use the last input count recorded by Codex for each turn. The change compares to the previous measured turn within the same context window.";
+  }
   switch (id) {
     case "base":
       return "Codex adds this to every request, even in an empty thread; only the conversation grows. You can shrink Tools (fewer plugins and MCP servers), the skills catalog and AGENTS.md. The rest is set by Codex.";
@@ -346,6 +353,48 @@ function problemsSection(s: ContextSnapshot): string {
     </section>`;
 }
 
+const ITEM_KIND: Record<ContextItem["kind"], string> = {
+  user: "User",
+  assistant: "Assistant",
+  terminal: "Terminal output",
+  mcp: "MCP result",
+  tool: "Tool result",
+};
+
+const TURN_STATUS: Record<ContextTurn["status"], string> = {
+  "finished": "Finished",
+  "in-progress": "In progress",
+  "interrupted": "Interrupted",
+  "incomplete": "End not recorded",
+};
+
+function turnRow(t: ContextTurn): string {
+  const delta = t.inputDelta === null ? null : `${t.inputDelta > 0 ? "+" : t.inputDelta < 0 ? "−" : ""}${compact(Math.abs(t.inputDelta))}`;
+  return row(`turn-${t.number}`, "plain", `Turn ${t.number}`, delta ?? (t.compacted ? "Compacted" : null), () => `
+    <div class="row">
+      <span class="sub small">${TURN_STATUS[t.status]}${t.compacted ? " · New context window" : ""}</span>
+      <span class="num small">${t.inputTokens === null ? "No input count" : `${compact(t.inputTokens)} input`}</span>
+    </div>
+    ${t.largest.length ? `<div class="sub small">Largest recorded text items</div><ul class="list">
+      ${t.largest.map((i) => `<li class="kv">
+        <span class="title" title="${esc(i.label)}">${esc(i.label)}${i.kind === "user" || i.kind === "assistant" ? "" : ` <span class="sub small">· ${ITEM_KIND[i.kind]}</span>`}</span>
+        <span class="num">${tk(i.tokens)}</span>
+      </li>`).join("")}
+    </ul>` : `<div class="sub small">No countable text was recorded for this turn.</div>`}
+    ${t.skippedItems ? `<div class="sub small">${t.skippedItems} oversized record${t.skippedItems === 1 ? "" : "s"} skipped.</div>` : ""}
+  `);
+}
+
+function activitySection(s: ContextSnapshot): string {
+  const turns = s.recentTurns;
+  if (!turns?.length) return "";
+  return `<section class="block">
+    <div class="label">Recent context growth</div>
+    <div class="sub small">Compared with the previous measured turn. Expand a turn for recorded text counts.</div>
+    <ol class="items">${turns.map(turnRow).join("")}</ol>
+  </section>`;
+}
+
 // ---------- what's in context ----------
 
 // Everything Codex sends before the conversation; it rides along with every request.
@@ -467,10 +516,22 @@ function draw(): void {
     root.innerHTML = `
       ${header(s)}
       ${overview(s, 132)}
+      ${activitySection(s)}
       ${problemsSection(s)}
       ${contextSection(s)}
       ${notesSection(s)}`;
   }
+}
+
+async function copyCompact(): Promise<void> {
+  try {
+    await navigator.clipboard.writeText("/compact");
+    compactCopy = "copied";
+  } catch {
+    compactCopy = "unavailable";
+  }
+  render();
+  root.querySelector<HTMLElement>('[data-action="copy-compact"]')?.focus();
 }
 
 root.addEventListener("click", (event) => {
@@ -478,6 +539,7 @@ root.addEventListener("click", (event) => {
   if (!target) return;
   event.preventDefault();
   if (target.dataset.action === "refresh") refresh(true);
+  if (target.dataset.action === "copy-compact") void copyCompact();
   if (target.dataset.action === "row" && target.dataset.id) {
     openRow = openRow === target.dataset.id ? null : target.dataset.id;
     render();

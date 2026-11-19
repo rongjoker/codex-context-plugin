@@ -120,6 +120,13 @@
       .legend .share { width: 32px; text-align: right; color: var(--fg-3); font-size: 12px; }
       .side .small { margin-top: 6px; }
       body[data-view="inline"] .center b { font-size: 16px; }
+      @media (max-width: 410px) {
+        .overview { gap: 12px; }
+        .chart > svg { width: 96px; height: 96px; }
+        .center b { font-size: 17px; }
+        .center span { font-size: 9px; }
+        .legend li { gap: 6px; }
+      }
       @media (max-width: 330px) { .overview { flex-direction: column; align-items: stretch; } .chart { align-self: center; } }
 
       /* One row component for problems and context sections alike. */
@@ -173,6 +180,7 @@
       .err { margin-top: 2px; color: var(--danger); }
       .link { font: inherit; font-size: 12px; margin-top: 4px; padding: 0; border: 0; background: none; color: var(--fg-2); cursor: pointer; }
       .link:hover { color: var(--fg); }
+      .compact-copy { text-decoration: underline; text-underline-offset: 3px; }
       .pop { position: fixed; z-index: 10; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line-strong); background: var(--bg); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); font-size: 12px; color: var(--fg-2); }
       :root[data-theme="dark"] .pop { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5); }
       .pop[hidden] { display: none; }

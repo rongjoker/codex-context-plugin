@@ -1,11 +1,11 @@
 {
-  "name": "codex-context",
+  "name": "rongjoker-context",
   "interface": {
-    "displayName": "Codex Context"
+    "displayName": "Codex Context Dev"
   },
   "plugins": [
     {
-      "name": "context",
+      "name": "context-dev",
       "source": {
         "source": "local",
         "path": "./plugins/context"
