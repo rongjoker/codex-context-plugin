@@ -1,6 +1,6 @@
 # Codex Context Dev
 
-Private development fork of [Codex Context](https://github.com/nnixaa/codex-context-plugin), distributed under its MIT license. The plugin shows what fills a Codex thread's context.
+Development fork of [Codex Context](https://github.com/nnixaa/codex-context-plugin), distributed under its MIT license. The plugin shows what fills a Codex thread's context.
 
 <img src="docs/screenshot.png" width="420" alt="Upstream Context tab beside a thread">
 
