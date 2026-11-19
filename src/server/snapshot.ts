@@ -108,7 +108,7 @@ function compactionOf(rollout: Rollout | null, configured: number | null, window
   return { limit, current, perMessage, samples: rollout?.growth?.samples ?? 0, messagesLeft };
 }
 
-export async function contextSnapshot(view: View, threadId: string | undefined, since?: number): Promise<ContextSnapshot> {
+export async function contextSnapshot(view: View, threadId: string | undefined, since?: number, turnLimit?: number): Promise<ContextSnapshot> {
   const errors: string[] = [];
   const [settings, found] = await Promise.all([
     readSettings(),
@@ -126,7 +126,7 @@ export async function contextSnapshot(view: View, threadId: string | undefined, 
   let rollout: Rollout | null = null;
   if (row?.rollout_path) {
     try {
-      rollout = await readRollout(row.id, row.rollout_path);
+      rollout = await readRollout(row.id, row.rollout_path, turnLimit);
       if (rollout.historyMissing) errors.push("The start of this thread's history is missing, so first-request figures are unavailable.");
     } catch (error) {
       errors.push(`Could not read the thread's rollout: ${message(error)}`);
@@ -154,6 +154,7 @@ export async function contextSnapshot(view: View, threadId: string | undefined, 
     agents: agents.agents,
     skills,
     recentTurns: rollout?.recentTurns ?? [],
+    turnCount: rollout?.turnCount ?? 0,
     compaction,
     problems: findProblems({ now, contextWindow, agents: agents.agents, skills }),
     notes: agents.notes,

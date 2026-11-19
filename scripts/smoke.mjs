@@ -39,7 +39,7 @@ function breakdown(s) {
     console.log(`  ${list(s.now.blocks)}`);
   } else console.log("now: none");
   for (const turn of s.recentTurns ?? []) {
-    console.log(`turn ${turn.number} ${turn.status} input=${turn.inputTokens} delta=${turn.inputDelta} kinds=${turn.largest.map((item) => item.kind).join(",")} skipped=${turn.skippedItems}`);
+    console.log(`turn ${turn.number} ${turn.status} input=${turn.inputTokens} delta=${turn.inputDelta} durationMs=${turn.durationMs} kinds=${turn.largest.map((item) => item.kind).join(",")} skipped=${turn.skippedItems}`);
   }
   const c = s.compaction;
   console.log(c ? `compaction limit=${c.limit} current=${c.current} perMessage=${c.perMessage} samples=${c.samples} messagesLeft=${c.messagesLeft}` : "compaction: none");

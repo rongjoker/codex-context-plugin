@@ -27,6 +27,7 @@ export type Rollout = {
   latestTotal: number | null;
   growth: { perMessage: number; samples: number } | null;
   recentTurns: ContextTurn[];
+  turnCount: number;
 };
 
 const GROWTH_TURNS = 5;
@@ -182,11 +183,11 @@ class Parser {
         return this.item(payload);
       case "event_msg":
         if (payload?.type === "token_count") this.tokenCount(payload.info);
-        else if (payload?.type === "task_started") this.activity.start(payload.turn_id);
+        else if (payload?.type === "task_started") this.activity.start(payload, record.timestamp);
         else if (payload?.type === "task_complete") {
           this.turnEnd();
-          this.activity.finish("finished", payload.turn_id);
-        } else if (payload?.type === "turn_aborted") this.activity.finish("interrupted", payload.turn_id);
+          this.activity.finish("finished", payload, record.timestamp);
+        } else if (payload?.type === "turn_aborted") this.activity.finish("interrupted", payload, record.timestamp);
         return;
       case "world_state":
         return this.worldState(payload);
@@ -350,7 +351,7 @@ class Parser {
     return blocks;
   }
 
-  result(): Rollout {
+  result(turnLimit?: number): Rollout {
     let agents: Rollout["agents"] = null;
     if (this.world) {
       const md = this.world.agents_md;
@@ -366,6 +367,7 @@ class Parser {
     }
 
     const latest = this.latest;
+    const activity = this.activity.result(turnLimit);
     return {
       start: this.start,
       latest: latest && {
@@ -378,7 +380,8 @@ class Parser {
       agents,
       skillsCatalog,
       historyMissing: !this.fromBase,
-      recentTurns: this.activity.result(),
+      recentTurns: activity.turns,
+      turnCount: activity.count,
       latestTotal: this.lastTotal,
       growth: this.deltas.length
         ? { perMessage: Math.round(this.deltas.reduce((sum, d) => sum + d, 0) / this.deltas.length), samples: this.deltas.length }
@@ -547,7 +550,7 @@ async function resumeAt(entry: Entry, segments: Segment[], fromBase: boolean): P
   return size >= entry.open.offset ? at : -1;
 }
 
-async function update(threadId: string, path: string): Promise<Rollout> {
+async function update(threadId: string, path: string, turnLimit?: number): Promise<Rollout> {
   const { segments, fromBase } = await segmentChain(threadId, path);
   let entry = entries.get(threadId);
   let at = entry ? await resumeAt(entry, segments, fromBase) : -1;
@@ -576,12 +579,12 @@ async function update(threadId: string, path: string): Promise<Rollout> {
     throw error;
   }
   await entry.parser.settle();
-  return entry.parser.result();
+  return entry.parser.result(turnLimit);
 }
 
 // Requests for one thread run one at a time so they share a single resumable parse.
-export function readRollout(threadId: string, path: string): Promise<Rollout> {
-  const run = (locks.get(threadId) ?? Promise.resolve()).catch(() => {}).then(() => update(threadId, path));
+export function readRollout(threadId: string, path: string, turnLimit?: number): Promise<Rollout> {
+  const run = (locks.get(threadId) ?? Promise.resolve()).catch(() => {}).then(() => update(threadId, path, turnLimit));
   locks.set(threadId, run);
   const release = () => {
     if (locks.get(threadId) === run) locks.delete(threadId);

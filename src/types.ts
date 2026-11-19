@@ -12,6 +12,8 @@ export type ContextItem = {
 export type ContextTurn = {
   number: number;
   status: "in-progress" | "finished" | "interrupted" | "incomplete";
+  startedAt?: number | null; // Unix milliseconds
+  durationMs?: number | null;
   inputTokens: number | null;
   inputDelta: number | null;
   compacted: boolean;
@@ -165,6 +167,7 @@ export type ContextSnapshot = {
 
   problems: Problem[]; // most severe first
   recentTurns?: ContextTurn[];
+  turnCount?: number;
   notes: string[]; // lesser observations that need no action
   errors: string[];
   generatedAt: number;

@@ -37,6 +37,7 @@ const vars = theme === "dark"
   ? { "--color-background-primary": "#181818", "--color-background-tertiary": "#303030", "--color-text-primary": "#ffffff", "--color-text-secondary": "#afafaf", "--color-text-tertiary": "#afafaf", "--color-border-primary": "rgba(255,255,255,0.16)", "--color-border-secondary": "rgba(255,255,255,0.08)", "--color-text-warning": "#fb923c", "--color-text-danger": "#f87171", "--color-text-success": "#40c977" }
   : { "--color-background-primary": "#ffffff", "--color-background-tertiary": "#ececec", "--color-text-primary": "#0d0d0d", "--color-text-secondary": "#5d5d5d", "--color-text-tertiary": "#8f8f8f", "--color-border-primary": "rgba(13,13,13,0.15)", "--color-border-secondary": "rgba(13,13,13,0.08)", "--color-text-warning": "#c2410c", "--color-text-danger": "#d92d20", "--color-text-success": "#00a240" };
 const snapshots = fetch(plugin.data).then(r => r.json());
+const activeStartedAt = Date.now() - 41000;
 for (const spec of plugin.frames) {
   if (only && spec.key !== only) continue;
   const figure = document.createElement("figure");
@@ -53,7 +54,16 @@ for (const spec of plugin.frames) {
     if (event.source !== frame.contentWindow) return;
     const msg = event.data; const reply = (result) => frame.contentWindow.postMessage({ jsonrpc: "2.0", id: msg.id, result }, "*");
     const snap = (await snapshots)[spec.key];
-    const fresh = () => ({ ...snap, structuredContent: { ...snap.structuredContent, generatedAt: Date.now() } });
+    const fresh = (limit = 5) => ({
+      ...snap,
+      structuredContent: {
+        ...snap.structuredContent,
+        generatedAt: Date.now(),
+        recentTurns: snap.structuredContent.recentTurns?.slice(0, limit).map(t => (
+          t.status === "in-progress" ? { ...t, startedAt: activeStartedAt } : t
+        )),
+      },
+    });
     if (msg.method === "ui/initialize") {
       reply({ protocolVersion: "2026-01-26", hostInfo: { name: "preview-host", version: "0" }, hostCapabilities: { serverTools: {}, message: { text: {} } },
         hostContext: { theme, styles: { variables: vars }, safeAreaInsets: { top: 0, right: 0, bottom: 0, left: 0 }, platform: "desktop", displayMode: spec.key === "inline" ? "inline" : "fullscreen", toolInfo: { tool: { name: spec.tool, inputSchema: { type: "object" } } } } });
@@ -66,7 +76,7 @@ for (const spec of plugin.frames) {
       await new Promise(r => setTimeout(r, 600));
       if (name === "context.skills") reply({ content: [], structuredContent: (await snapshots).skills });
       else if (name === "context.setSkill") reply({ content: [], structuredContent: { enabled: msg.params.arguments.enabled, error: null } });
-      else reply(fresh());
+      else reply(fresh(msg.params?.arguments?.turnLimit));
     } else if (msg.method === "ui/message") {
       caption.textContent = `${spec.caption} · sent: ${msg.params.content.map(c => c.text).join(" ")}`;
       reply({});

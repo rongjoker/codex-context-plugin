@@ -113,8 +113,8 @@ function prewarm(s: ContextSnapshot): ContextSnapshot {
   return s;
 }
 
-const snapshot = (view: View, threadId: string | undefined, since?: number) =>
-  contextSnapshot(view, threadId, since).then(prewarm).then(result);
+const snapshot = (view: View, threadId: string | undefined, since?: number, turnLimit?: number) =>
+  contextSnapshot(view, threadId, since, turnLimit).then(prewarm).then(result);
 
 const server = new McpServer({
   name: "context-dev",
@@ -171,11 +171,12 @@ server.registerTool(
       threadId: z.string().optional(),
       // When the tab opened, for a tab waiting on a new chat's first message.
       since: z.number().optional(),
+      turnLimit: z.number().int().positive().optional(),
     }),
     annotations: readonly,
     _meta: { ui: { visibility: ["app"] } },
   },
-  async ({ view, threadId, since }, extra) => snapshot(view, threadId ?? threadIdFrom(extra._meta), since),
+  async ({ view, threadId, since, turnLimit }, extra) => snapshot(view, threadId ?? threadIdFrom(extra._meta), since, turnLimit),
 );
 
 server.registerTool(

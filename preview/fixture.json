@@ -17,10 +17,22 @@
    },
    "contextWindow": 258400,
    "exactTokens": true,
+   "turnCount": 7,
    "recentTurns": [
+    {
+     "number": 20,
+     "status": "in-progress",
+     "inputTokens": null,
+     "inputDelta": null,
+     "compacted": false,
+     "largest": [],
+     "skippedItems": 0
+    },
     {
      "number": 19,
      "status": "finished",
+     "startedAt": 1767268800000,
+     "durationMs": 192400,
      "inputTokens": 67321,
      "inputDelta": 12432,
      "compacted": false,
@@ -35,6 +47,7 @@
     {
      "number": 18,
      "status": "finished",
+     "durationMs": 43000,
      "inputTokens": 54889,
      "inputDelta": null,
      "compacted": false,
@@ -44,9 +57,39 @@
     {
      "number": 17,
      "status": "finished",
+     "durationMs": 18000,
      "inputTokens": null,
      "inputDelta": null,
      "compacted": true,
+     "largest": [],
+     "skippedItems": 0
+    },
+    {
+     "number": 16,
+     "status": "interrupted",
+     "durationMs": 78000,
+     "inputTokens": 92000,
+     "inputDelta": null,
+     "compacted": false,
+     "largest": [],
+     "skippedItems": 0
+    },
+    {
+     "number": 15,
+     "status": "finished",
+     "inputTokens": 90000,
+     "inputDelta": null,
+     "compacted": false,
+     "largest": [],
+     "skippedItems": 0
+    },
+    {
+     "number": 14,
+     "status": "finished",
+     "durationMs": 15000,
+     "inputTokens": 88700,
+     "inputDelta": null,
+     "compacted": false,
      "largest": [],
      "skippedItems": 0
     }

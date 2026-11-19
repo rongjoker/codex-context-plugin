@@ -11,9 +11,26 @@ export type LoggedItem = {
   namespace?: string;
 };
 
-const RECENT_TURNS = 5;
+type TurnEvent = {
+  turn_id?: string;
+  started_at?: number;
+  completed_at?: number;
+  duration_ms?: number;
+};
+
+const DEFAULT_TURN_LIMIT = 5;
 const LARGEST_ITEMS = 5;
 const PENDING_CALLS = 128;
+
+function validTime(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
+function eventTime(seconds: unknown, timestamp?: string): number | null {
+  if (validTime(seconds)) return seconds * 1000;
+  const parsed = typeof timestamp === "string" ? Date.parse(timestamp) : NaN;
+  return validTime(parsed) ? parsed : null;
+}
 
 function textTokens(content: unknown): number {
   if (typeof content === "string") return countTokens(content);
@@ -38,12 +55,16 @@ export class RecentActivity {
   private previousInput: number | null = null;
   private active: ContextTurn | null = null;
   private activeId: string | undefined;
-  private recent: ContextTurn[] = [];
+  private finished: ContextTurn[] = [];
+  private lastFinishedId: string | undefined;
   private calls = new Map<string, Pick<ContextItem, "kind" | "label">>();
 
-  start(id?: string): void {
+  start(event?: TurnEvent, timestamp?: string): void {
+    const id = event?.turn_id;
+    const startedAt = eventTime(event?.started_at, timestamp);
     if (this.active && (this.activeId === undefined || this.activeId === id)) {
       this.activeId ??= id;
+      this.active.startedAt ??= startedAt;
       return;
     }
     this.finish("incomplete");
@@ -51,6 +72,8 @@ export class RecentActivity {
     this.active = {
       number: ++this.number,
       status: "in-progress",
+      startedAt,
+      durationMs: null,
       inputTokens: null,
       inputDelta: null,
       compacted: false,
@@ -103,21 +126,36 @@ export class RecentActivity {
     turn.compacted = true;
   }
 
-  finish(status: Exclude<ContextTurn["status"], "in-progress">, id?: string): void {
+  finish(status: Exclude<ContextTurn["status"], "in-progress">, event?: TurnEvent, timestamp?: string): void {
+    const id = event?.turn_id;
+    if (id !== undefined && id === this.lastFinishedId) return;
+    if (!this.active && (validTime(event?.duration_ms) || validTime(event?.started_at))) this.start(event);
     const turn = this.active;
     if (!turn || (id && this.activeId && id !== this.activeId)) return;
+    this.lastFinishedId = id ?? this.activeId;
     this.active = null;
     this.activeId = undefined;
     turn.status = status;
+    turn.startedAt ??= eventTime(event?.started_at);
+    if (validTime(event?.duration_ms)) turn.durationMs = event.duration_ms;
+    else if (status !== "incomplete" && turn.startedAt != null) {
+      const endedAt = eventTime(event?.completed_at, timestamp);
+      if (endedAt !== null && endedAt >= turn.startedAt) turn.durationMs = endedAt - turn.startedAt;
+    }
     if (turn.inputTokens !== null) this.previousInput = turn.inputTokens;
-    if (turn.inputTokens === null && !turn.compacted && !turn.largest.length && !turn.skippedItems) return;
-    this.recent.push(turn);
-    if (this.recent.length > RECENT_TURNS) this.recent.shift();
+    if (turn.inputTokens === null && !turn.compacted && !turn.largest.length && !turn.skippedItems
+      && turn.startedAt == null && turn.durationMs == null) return;
+    this.finished.push(turn);
   }
 
-  result(): ContextTurn[] {
-    const turns = this.active ? [...this.recent, this.active] : this.recent;
-    return turns.slice(-RECENT_TURNS).reverse().map((turn) => ({ ...turn, largest: [...turn.largest] }));
+  result(limit = DEFAULT_TURN_LIMIT): { turns: ContextTurn[]; count: number } {
+    const reserved = this.active ? 1 : 0;
+    const turns = this.finished.slice(Math.max(0, this.finished.length - (limit - reserved))).reverse();
+    if (this.active) turns.unshift(this.active);
+    return {
+      turns: turns.map((turn) => ({ ...turn, largest: [...turn.largest] })),
+      count: this.finished.length + reserved,
+    };
   }
 
   private add(item: ContextItem): void {

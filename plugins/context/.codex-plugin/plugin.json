@@ -1,6 +1,6 @@
 {
   "name": "context-dev",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "See what fills a Codex thread's context: the skills catalog, AGENTS.md files, tools and the conversation.",
   "author": {
     "name": "Dmitry Nehaychik",

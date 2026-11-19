@@ -1,5 +1,5 @@
 import { App, applyDocumentTheme, applyHostFonts, applyHostStyleVariables } from "@modelcontextprotocol/ext-apps";
-import { messagesLeftText } from "../format.js";
+import { durationText, messagesLeftText } from "../format.js";
 import type { AgentsFile, Block, ContextItem, ContextSnapshot, ContextTurn, Problem, SkillChoice, SkillChoices, View } from "../types.js";
 
 // The tab refreshes when the thread records a new model request (the server watches the
@@ -16,6 +16,10 @@ const app = new App({ name: "context", version: "0.2.0" });
 const root = document.getElementById("context-app")!;
 let state: ContextSnapshot | null = null;
 let loading = false;
+let pendingRefresh: Promise<boolean> | null = null;
+let turnLimit: number | undefined;
+let loadingEarlier = false;
+let earlierError = false;
 let compactCopy: "copied" | "unavailable" | null = null;
 // The open row: a problem or a context section.
 let openRow: string | null = null;
@@ -168,7 +172,7 @@ function row(id: string, kind: Problem["severity"] | "plain", title: string, val
 // What the ⓘ of a context row says.
 function rowInfo(id: string, s: ContextSnapshot): string | null {
   if (id.startsWith("turn-")) {
-    return "Input and change use the last input count recorded by Codex for each turn. The change compares to the previous measured turn within the same context window.";
+    return "Time starts when Codex begins processing the turn and includes tools and waits during the turn. Input change compares the last recorded request of this turn with the previous measured turn in the same context window.";
   }
   switch (id) {
     case "base":
@@ -368,13 +372,25 @@ const TURN_STATUS: Record<ContextTurn["status"], string> = {
   "incomplete": "End not recorded",
 };
 
-function turnRow(t: ContextTurn): string {
+const turnTime = new Intl.DateTimeFormat(undefined, { dateStyle: "short", timeStyle: "short" });
+
+function turnCost(t: ContextTurn): string {
+  const elapsed = t.status === "in-progress" && t.startedAt != null
+    ? `${durationText(Math.max(0, Date.now() - t.startedAt))} elapsed`
+    : null;
+  const duration = t.durationMs != null ? durationText(t.durationMs) : elapsed;
   const delta = t.inputDelta === null ? null : `${t.inputDelta > 0 ? "+" : t.inputDelta < 0 ? "−" : ""}${compact(Math.abs(t.inputDelta))}`;
-  return row(`turn-${t.number}`, "plain", `Turn ${t.number}`, delta ?? (t.compacted ? "Compacted" : null), () => `
+  return [duration, delta ?? (t.compacted ? "Compacted" : null)].filter(Boolean).join(" · ") || "—";
+}
+
+function turnRow(t: ContextTurn): string {
+  return row(`turn-${t.number}`, "plain", `Turn ${t.number}`, turnCost(t), () => `
     <div class="row">
       <span class="sub small">${TURN_STATUS[t.status]}${t.compacted ? " · New context window" : ""}</span>
       <span class="num small">${t.inputTokens === null ? "No input count" : `${compact(t.inputTokens)} input`}</span>
     </div>
+    ${t.startedAt != null ? `<div class="sub small">Started ${esc(turnTime.format(t.startedAt))}</div>` : ""}
+    ${t.durationMs == null && (t.status !== "in-progress" || t.startedAt == null) ? '<div class="sub small">Duration unavailable.</div>' : ""}
     ${t.largest.length ? `<div class="sub small">Largest recorded text items</div><ul class="list">
       ${t.largest.map((i) => `<li class="kv">
         <span class="title" title="${esc(i.label)}">${esc(i.label)}${i.kind === "user" || i.kind === "assistant" ? "" : ` <span class="sub small">· ${ITEM_KIND[i.kind]}</span>`}</span>
@@ -388,11 +404,28 @@ function turnRow(t: ContextTurn): string {
 function activitySection(s: ContextSnapshot): string {
   const turns = s.recentTurns;
   if (!turns?.length) return "";
+  const hasEarlier = (s.turnCount ?? turns.length) > turns.length;
   return `<section class="block">
-    <div class="label">Recent context growth</div>
-    <div class="sub small">Compared with the previous measured turn. Expand a turn for recorded text counts.</div>
+    <div class="label">Turn history</div>
+    <div class="sub small">Time from when Codex begins processing. Expand a turn for token details.</div>
     <ol class="items">${turns.map(turnRow).join("")}</ol>
+    ${hasEarlier ? `<button class="btn small" type="button" data-action="earlier-turns"${loadingEarlier ? " disabled" : ""}>${loadingEarlier ? "Loading…" : "Show earlier turns"}</button>` : ""}
+    ${earlierError ? '<div class="err small" role="status">Could not load earlier turns. Try again.</div>' : ""}
   </section>`;
+}
+
+async function loadEarlierTurns(): Promise<void> {
+  if (loadingEarlier) return;
+  loadingEarlier = true;
+  earlierError = false;
+  render();
+  await pendingRefresh;
+  const shown = state?.recentTurns?.length ?? 0;
+  const success = await refresh(false, shown + 10);
+  loadingEarlier = false;
+  earlierError = !success || ((state?.recentTurns?.length ?? 0) <= shown && (state?.turnCount ?? 0) > shown);
+  render();
+  root.querySelector<HTMLElement>('[data-action="earlier-turns"]')?.focus();
 }
 
 // ---------- what's in context ----------
@@ -540,6 +573,7 @@ root.addEventListener("click", (event) => {
   event.preventDefault();
   if (target.dataset.action === "refresh") refresh(true);
   if (target.dataset.action === "copy-compact") void copyCompact();
+  if (target.dataset.action === "earlier-turns") void loadEarlierTurns();
   if (target.dataset.action === "row" && target.dataset.id) {
     openRow = openRow === target.dataset.id ? null : target.dataset.id;
     render();
@@ -683,8 +717,12 @@ function guessView(): View {
 const seen = (s: ContextSnapshot | null) => (s ? JSON.stringify({ ...s, generatedAt: 0 }) : "");
 
 // Background checks stay silent; only a click on refresh shows the spinner.
-async function refresh(manual = false): Promise<void> {
-  if (loading) return;
+function refresh(manual = false, requestedTurnLimit = turnLimit): Promise<boolean> {
+  pendingRefresh ??= readSnapshot(manual, requestedTurnLimit).finally(() => { pendingRefresh = null; });
+  return pendingRefresh;
+}
+
+async function readSnapshot(manual: boolean, requestedTurnLimit: number | undefined): Promise<boolean> {
   loading = true;
   if (manual) render();
   const before = seen(state);
@@ -694,11 +732,14 @@ async function refresh(manual = false): Promise<void> {
       arguments: {
         view: state?.view ?? guessView(),
         ...(state?.thread?.isCurrent ? { threadId: state.thread.id } : { since: openedAt }),
+        ...(requestedTurnLimit != null ? { turnLimit: requestedTurnLimit } : {}),
       },
     });
     if (!result.isError && result.structuredContent) {
       state = result.structuredContent as unknown as ContextSnapshot;
       checkedAt = Date.now();
+      turnLimit = requestedTurnLimit;
+      return true;
     }
   } catch {
     // Keep the last snapshot; the next tick retries.
@@ -706,6 +747,7 @@ async function refresh(manual = false): Promise<void> {
     loading = false;
     if (manual || seen(state) !== before) render();
   }
+  return false;
 }
 
 function applyContext(ctx: ReturnType<App["getHostContext"]>): void {
@@ -773,5 +815,12 @@ function wake(): void {
 setInterval(() => {
   if (state && !loading) render();
 }, TICK_MS);
+setInterval(() => {
+  const turn = state?.recentTurns?.[0];
+  if (state?.view !== "panel" || document.visibilityState !== "visible"
+    || turn?.status !== "in-progress" || turn.startedAt == null) return;
+  const cost = root.querySelector<HTMLElement>(`[data-id="turn-${turn.number}"][data-action="row"] .cost`);
+  if (cost) cost.textContent = turnCost(turn);
+}, 1000);
 document.addEventListener("visibilitychange", wake);
 window.addEventListener("focus", wake);

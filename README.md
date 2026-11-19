@@ -7,7 +7,7 @@ Private development fork of [Codex Context](https://github.com/nnixaa/codex-cont
 ## What it shows
 
 - **What's in context.** The conversation, tools, the skills catalog, Codex's system prompt and AGENTS.md, as a chart of the latest request.
-- **Recent context growth.** Open one of the last five recorded turns to see the biggest recorded user messages, assistant responses, and terminal or tool outputs. MCP results identify the server and tool when the transcript provides a name or matching call ID. The change uses the last input count Codex recorded for each turn within the same context window. Item counts cover visible text only. Oversized records are reported separately.
+- **Turn history.** See elapsed time from when Codex begins processing each turn, including its tool calls and waits. An unfinished latest turn shows time since its recorded start. Completed or interrupted turns use Codex's duration when available, with a timestamp fallback for older records. The list starts with five turns and can load earlier ones. Open each turn for its input token change and largest recorded text items. MCP results show the server and tool where the transcript provides enough information.
 - **Copy /compact.** Copies the native command so you can paste it into the chat and run it. If clipboard access is unavailable, type `/compact` in the chat.
 - **Messages until compaction.** About how many more messages fit before Codex compacts the thread and keeps only a summary.
 - **Issues.** Each one is a row with its cost per request; ⓘ explains why and how it was measured. A colored count next to the title shows when there are any.

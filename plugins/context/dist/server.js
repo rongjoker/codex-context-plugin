@@ -38447,9 +38447,17 @@ import { open as open2, readdir, stat as stat3 } from "node:fs/promises";
 import { dirname as dirname3, join as join5 } from "node:path";
 
 // src/server/activity.ts
-var RECENT_TURNS = 5;
+var DEFAULT_TURN_LIMIT = 5;
 var LARGEST_ITEMS = 5;
 var PENDING_CALLS = 128;
+function validTime(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+function eventTime(seconds, timestamp) {
+  if (validTime(seconds)) return seconds * 1e3;
+  const parsed = typeof timestamp === "string" ? Date.parse(timestamp) : NaN;
+  return validTime(parsed) ? parsed : null;
+}
 function textTokens(content) {
   if (typeof content === "string") return countTokens(content);
   if (!Array.isArray(content)) return 0;
@@ -38471,11 +38479,15 @@ var RecentActivity = class {
   previousInput = null;
   active = null;
   activeId;
-  recent = [];
+  finished = [];
+  lastFinishedId;
   calls = /* @__PURE__ */ new Map();
-  start(id) {
+  start(event, timestamp) {
+    const id = event?.turn_id;
+    const startedAt = eventTime(event?.started_at, timestamp);
     if (this.active && (this.activeId === void 0 || this.activeId === id)) {
       this.activeId ??= id;
+      this.active.startedAt ??= startedAt;
       return;
     }
     this.finish("incomplete");
@@ -38483,6 +38495,8 @@ var RecentActivity = class {
     this.active = {
       number: ++this.number,
       status: "in-progress",
+      startedAt,
+      durationMs: null,
       inputTokens: null,
       inputDelta: null,
       compacted: false,
@@ -38529,20 +38543,34 @@ var RecentActivity = class {
     turn.inputDelta = null;
     turn.compacted = true;
   }
-  finish(status, id) {
+  finish(status, event, timestamp) {
+    const id = event?.turn_id;
+    if (id !== void 0 && id === this.lastFinishedId) return;
+    if (!this.active && (validTime(event?.duration_ms) || validTime(event?.started_at))) this.start(event);
     const turn = this.active;
     if (!turn || id && this.activeId && id !== this.activeId) return;
+    this.lastFinishedId = id ?? this.activeId;
     this.active = null;
     this.activeId = void 0;
     turn.status = status;
+    turn.startedAt ??= eventTime(event?.started_at);
+    if (validTime(event?.duration_ms)) turn.durationMs = event.duration_ms;
+    else if (status !== "incomplete" && turn.startedAt != null) {
+      const endedAt = eventTime(event?.completed_at, timestamp);
+      if (endedAt !== null && endedAt >= turn.startedAt) turn.durationMs = endedAt - turn.startedAt;
+    }
     if (turn.inputTokens !== null) this.previousInput = turn.inputTokens;
-    if (turn.inputTokens === null && !turn.compacted && !turn.largest.length && !turn.skippedItems) return;
-    this.recent.push(turn);
-    if (this.recent.length > RECENT_TURNS) this.recent.shift();
+    if (turn.inputTokens === null && !turn.compacted && !turn.largest.length && !turn.skippedItems && turn.startedAt == null && turn.durationMs == null) return;
+    this.finished.push(turn);
   }
-  result() {
-    const turns = this.active ? [...this.recent, this.active] : this.recent;
-    return turns.slice(-RECENT_TURNS).reverse().map((turn) => ({ ...turn, largest: [...turn.largest] }));
+  result(limit = DEFAULT_TURN_LIMIT) {
+    const reserved = this.active ? 1 : 0;
+    const turns = this.finished.slice(Math.max(0, this.finished.length - (limit - reserved))).reverse();
+    if (this.active) turns.unshift(this.active);
+    return {
+      turns: turns.map((turn) => ({ ...turn, largest: [...turn.largest] })),
+      count: this.finished.length + reserved
+    };
   }
   add(item) {
     if (!item.tokens) return;
@@ -38684,11 +38712,11 @@ var Parser = class {
         return this.item(payload);
       case "event_msg":
         if (payload?.type === "token_count") this.tokenCount(payload.info);
-        else if (payload?.type === "task_started") this.activity.start(payload.turn_id);
+        else if (payload?.type === "task_started") this.activity.start(payload, record3.timestamp);
         else if (payload?.type === "task_complete") {
           this.turnEnd();
-          this.activity.finish("finished", payload.turn_id);
-        } else if (payload?.type === "turn_aborted") this.activity.finish("interrupted", payload.turn_id);
+          this.activity.finish("finished", payload, record3.timestamp);
+        } else if (payload?.type === "turn_aborted") this.activity.finish("interrupted", payload, record3.timestamp);
         return;
       case "world_state":
         return this.worldState(payload);
@@ -38839,7 +38867,7 @@ var Parser = class {
     }
     return blocks2;
   }
-  result() {
+  result(turnLimit) {
     let agents = null;
     if (this.world) {
       const md = this.world.agents_md;
@@ -38853,6 +38881,7 @@ var Parser = class {
       skillsCatalog = this.lastSkills.replace(/^<skills_instructions>/, "").replace(/<\/skills_instructions>\s*$/, "");
     }
     const latest = this.latest;
+    const activity = this.activity.result(turnLimit);
     return {
       start: this.start,
       latest: latest && {
@@ -38865,7 +38894,8 @@ var Parser = class {
       agents,
       skillsCatalog,
       historyMissing: !this.fromBase,
-      recentTurns: this.activity.result(),
+      recentTurns: activity.turns,
+      turnCount: activity.count,
       latestTotal: this.lastTotal,
       growth: this.deltas.length ? { perMessage: Math.round(this.deltas.reduce((sum, d2) => sum + d2, 0) / this.deltas.length), samples: this.deltas.length } : null
     };
@@ -39008,7 +39038,7 @@ async function resumeAt(entry, segments, fromBase) {
   const size = next.end ?? (await stat3(next.path)).size;
   return size >= entry.open.offset ? at : -1;
 }
-async function update(threadId, path) {
+async function update(threadId, path, turnLimit) {
   const { segments, fromBase } = await segmentChain(threadId, path);
   let entry = entries.get(threadId);
   let at = entry ? await resumeAt(entry, segments, fromBase) : -1;
@@ -39037,11 +39067,11 @@ async function update(threadId, path) {
     throw error62;
   }
   await entry.parser.settle();
-  return entry.parser.result();
+  return entry.parser.result(turnLimit);
 }
-function readRollout(threadId, path) {
+function readRollout(threadId, path, turnLimit) {
   const run = (locks.get(threadId) ?? Promise.resolve()).catch(() => {
-  }).then(() => update(threadId, path));
+  }).then(() => update(threadId, path, turnLimit));
   locks.set(threadId, run);
   const release = () => {
     if (locks.get(threadId) === run) locks.delete(threadId);
@@ -39497,7 +39527,7 @@ function compactionOf(rollout, configured, window2) {
   }
   return { limit, current, perMessage, samples: rollout?.growth?.samples ?? 0, messagesLeft };
 }
-async function contextSnapshot(view, threadId, since) {
+async function contextSnapshot(view, threadId, since, turnLimit) {
   const errors = [];
   const [settings, found] = await Promise.all([
     readSettings(),
@@ -39513,7 +39543,7 @@ async function contextSnapshot(view, threadId, since) {
   let rollout = null;
   if (row?.rollout_path) {
     try {
-      rollout = await readRollout(row.id, row.rollout_path);
+      rollout = await readRollout(row.id, row.rollout_path, turnLimit);
       if (rollout.historyMissing) errors.push("The start of this thread's history is missing, so first-request figures are unavailable.");
     } catch (error62) {
       errors.push(`Could not read the thread's rollout: ${message(error62)}`);
@@ -39537,6 +39567,7 @@ async function contextSnapshot(view, threadId, since) {
     agents: agents.agents,
     skills,
     recentTurns: rollout?.recentTurns ?? [],
+    turnCount: rollout?.turnCount ?? 0,
     compaction,
     problems: findProblems({ now, contextWindow, agents: agents.agents, skills }),
     notes: agents.notes,
@@ -39726,7 +39757,7 @@ var AppServer = class {
 };
 
 // src/server/choices.ts
-var codex = new AppServer({ name: "codex-context-plugin", title: "Context", version: "0.5.0" });
+var codex = new AppServer({ name: "codex-context-plugin", title: "Context", version: "0.6.0" });
 var message2 = (error62) => error62 instanceof Error ? error62.message : String(error62);
 function sourceOf(path, cwd) {
   const unix = path.replace(/\\/g, "/");
@@ -39845,7 +39876,7 @@ function shutdownChoices() {
 }
 
 // src/server/index.ts
-var UI = `ui://context/app-${"0.5.0"}`;
+var UI = `ui://context/app-${"0.6.0"}`;
 var LARGEST_SKILLS = 10;
 var lastHtml = await readFile5(new URL("./app.html", import.meta.url), "utf8");
 async function appHtml() {
@@ -39930,11 +39961,11 @@ function prewarm(s) {
   });
   return s;
 }
-var snapshot = (view, threadId, since) => contextSnapshot(view, threadId, since).then(prewarm).then(result);
+var snapshot = (view, threadId, since, turnLimit) => contextSnapshot(view, threadId, since, turnLimit).then(prewarm).then(result);
 var server = new McpServer({
   name: "context-dev",
   title: "Context Dev",
-  version: "0.5.0",
+  version: "0.6.0",
   icons: [icon]
 });
 N3(server, "Context Dev", UI, {}, async () => ({
@@ -39980,12 +40011,13 @@ server.registerTool(
       view: external_exports.enum(["panel", "inline"]).default("panel"),
       threadId: external_exports.string().optional(),
       // When the tab opened, for a tab waiting on a new chat's first message.
-      since: external_exports.number().optional()
+      since: external_exports.number().optional(),
+      turnLimit: external_exports.number().int().positive().optional()
     }),
     annotations: readonly2,
     _meta: { ui: { visibility: ["app"] } }
   },
-  async ({ view, threadId, since }, extra) => snapshot(view, threadId ?? threadIdFrom(extra._meta), since)
+  async ({ view, threadId, since, turnLimit }, extra) => snapshot(view, threadId ?? threadIdFrom(extra._meta), since, turnLimit)
 );
 server.registerTool(
   "context.skills",
