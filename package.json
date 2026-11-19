@@ -1,6 +1,6 @@
 {
   "name": "codex-context-plugin",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Codex plugin that shows what fills a thread's context and what to fix: skills catalog, AGENTS.md, tools and the conversation.",
   "license": "MIT",
   "author": "Dmitry Nehaychik (https://github.com/nnixaa)",

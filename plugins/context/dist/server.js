@@ -38450,6 +38450,27 @@ import { dirname as dirname3, join as join5 } from "node:path";
 var DEFAULT_TURN_LIMIT = 5;
 var LARGEST_ITEMS = 5;
 var PENDING_CALLS = 128;
+var PROMPT_TITLE_LENGTH = 96;
+var sentences = new Intl.Segmenter(void 0, { granularity: "sentence" });
+function promptPreview(item, content) {
+  for (const part of Array.isArray(content) ? content : []) {
+    if (typeof part?.text !== "string") continue;
+    let text = part.text.trim();
+    if (text.startsWith("# Files mentioned by the user:")) {
+      const heading = /^## My request:[ \t]*\r?$/m.exec(text);
+      if (!heading) continue;
+      text = text.slice(heading.index + heading[0].length).trim();
+    }
+    if (!text || /^<\/?image(?=[\s>])/.test(text) || text.startsWith("<send_user_message_question_reply>")) continue;
+    const line = text.split(/\r?\n/, 1)[0].replace(/\s+/g, " ").trim().slice(0, PROMPT_TITLE_LENGTH * 2 + 2);
+    const sentence = sentences.segment(line)[Symbol.iterator]().next().value?.segment.trim() ?? "";
+    if (!sentence) continue;
+    const chars = Array.from(sentence);
+    const title = chars.length > PROMPT_TITLE_LENGTH ? `${chars.slice(0, PROMPT_TITLE_LENGTH - 1).join("").trimEnd()}\u2026` : sentence;
+    return { kind: "text", title };
+  }
+  if (Array.isArray(item.content) && item.content.some((part) => part?.type === "input_image")) return { kind: "image" };
+}
 function validTime(value) {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
@@ -38511,7 +38532,16 @@ var RecentActivity = class {
     turn.inputDelta = this.previousInput === null ? null : input2 - this.previousInput;
   }
   message(item, content = item.content) {
-    if (item.role === "user") this.add({ kind: "user", label: "User message", tokens: textTokens(content) });
+    if (item.role === "user") {
+      if (!this.active?.prompt) {
+        const prompt = promptPreview(item, content);
+        if (prompt) {
+          if (!this.active) this.start();
+          this.active.prompt = prompt;
+        }
+      }
+      this.add({ kind: "user", label: "User message", tokens: textTokens(content) });
+    }
     if (item.role === "assistant") this.add({ kind: "assistant", label: "Assistant response", tokens: textTokens(content) });
   }
   tool(item) {
@@ -38560,15 +38590,19 @@ var RecentActivity = class {
       if (endedAt !== null && endedAt >= turn.startedAt) turn.durationMs = endedAt - turn.startedAt;
     }
     if (turn.inputTokens !== null) this.previousInput = turn.inputTokens;
-    if (turn.inputTokens === null && !turn.compacted && !turn.largest.length && !turn.skippedItems && turn.startedAt == null && turn.durationMs == null) return;
+    if (turn.inputTokens === null && !turn.prompt && !turn.compacted && !turn.largest.length && !turn.skippedItems && turn.startedAt == null && turn.durationMs == null) return;
     this.finished.push(turn);
   }
-  result(limit = DEFAULT_TURN_LIMIT) {
+  result(limit = DEFAULT_TURN_LIMIT, includePrompts = false) {
     const reserved = this.active ? 1 : 0;
     const turns = this.finished.slice(Math.max(0, this.finished.length - (limit - reserved))).reverse();
     if (this.active) turns.unshift(this.active);
     return {
-      turns: turns.map((turn) => ({ ...turn, largest: [...turn.largest] })),
+      turns: turns.map(({ prompt, ...turn }) => ({
+        ...turn,
+        largest: [...turn.largest],
+        ...includePrompts && prompt ? { prompt } : {}
+      })),
       count: this.finished.length + reserved
     };
   }
@@ -38867,7 +38901,7 @@ var Parser = class {
     }
     return blocks2;
   }
-  result(turnLimit) {
+  result({ turnLimit, includePrompts }) {
     let agents = null;
     if (this.world) {
       const md = this.world.agents_md;
@@ -38881,7 +38915,7 @@ var Parser = class {
       skillsCatalog = this.lastSkills.replace(/^<skills_instructions>/, "").replace(/<\/skills_instructions>\s*$/, "");
     }
     const latest = this.latest;
-    const activity = this.activity.result(turnLimit);
+    const activity = this.activity.result(turnLimit, includePrompts);
     return {
       start: this.start,
       latest: latest && {
@@ -39038,7 +39072,7 @@ async function resumeAt(entry, segments, fromBase) {
   const size = next.end ?? (await stat3(next.path)).size;
   return size >= entry.open.offset ? at : -1;
 }
-async function update(threadId, path, turnLimit) {
+async function update(threadId, path, options) {
   const { segments, fromBase } = await segmentChain(threadId, path);
   let entry = entries.get(threadId);
   let at = entry ? await resumeAt(entry, segments, fromBase) : -1;
@@ -39067,11 +39101,11 @@ async function update(threadId, path, turnLimit) {
     throw error62;
   }
   await entry.parser.settle();
-  return entry.parser.result(turnLimit);
+  return entry.parser.result(options);
 }
-function readRollout(threadId, path, turnLimit) {
+function readRollout(threadId, path, options = {}) {
   const run = (locks.get(threadId) ?? Promise.resolve()).catch(() => {
-  }).then(() => update(threadId, path, turnLimit));
+  }).then(() => update(threadId, path, options));
   locks.set(threadId, run);
   const release = () => {
     if (locks.get(threadId) === run) locks.delete(threadId);
@@ -39543,7 +39577,7 @@ async function contextSnapshot(view, threadId, since, turnLimit) {
   let rollout = null;
   if (row?.rollout_path) {
     try {
-      rollout = await readRollout(row.id, row.rollout_path, turnLimit);
+      rollout = await readRollout(row.id, row.rollout_path, { turnLimit, includePrompts: view === "panel" && row.id === threadId });
       if (rollout.historyMissing) errors.push("The start of this thread's history is missing, so first-request figures are unavailable.");
     } catch (error62) {
       errors.push(`Could not read the thread's rollout: ${message(error62)}`);
@@ -39757,7 +39791,7 @@ var AppServer = class {
 };
 
 // src/server/choices.ts
-var codex = new AppServer({ name: "codex-context-plugin", title: "Context", version: "0.6.0" });
+var codex = new AppServer({ name: "codex-context-plugin", title: "Context", version: "0.7.0" });
 var message2 = (error62) => error62 instanceof Error ? error62.message : String(error62);
 function sourceOf(path, cwd) {
   const unix = path.replace(/\\/g, "/");
@@ -39876,7 +39910,7 @@ function shutdownChoices() {
 }
 
 // src/server/index.ts
-var UI = `ui://context/app-${"0.6.0"}`;
+var UI = `ui://context/app-${"0.7.0"}`;
 var LARGEST_SKILLS = 10;
 var lastHtml = await readFile5(new URL("./app.html", import.meta.url), "utf8");
 async function appHtml() {
@@ -39965,7 +39999,7 @@ var snapshot = (view, threadId, since, turnLimit) => contextSnapshot(view, threa
 var server = new McpServer({
   name: "context-dev",
   title: "Context Dev",
-  version: "0.6.0",
+  version: "0.7.0",
   icons: [icon]
 });
 N3(server, "Context Dev", UI, {}, async () => ({

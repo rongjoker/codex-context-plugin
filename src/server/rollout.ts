@@ -92,6 +92,7 @@ const ROLE = /"role":"([a-z]+)"/;
 const TAG_TEXT = ['"text":"<', `"text":"${AGENTS_HEADER}`].map((tag) => Buffer.from(tag));
 
 type Route = "parse" | "tagged" | "activity" | "compacted" | "skip";
+type RolloutOptions = { turnLimit?: number; includePrompts?: boolean };
 // Where a compacted record sits, so it can be read back without holding it in memory.
 type Place = { path: string; start: number; end: number };
 type Compaction = { place: Place | null; tallies: Map<BlockKey, Tally> | null };
@@ -351,7 +352,7 @@ class Parser {
     return blocks;
   }
 
-  result(turnLimit?: number): Rollout {
+  result({ turnLimit, includePrompts }: RolloutOptions): Rollout {
     let agents: Rollout["agents"] = null;
     if (this.world) {
       const md = this.world.agents_md;
@@ -367,7 +368,7 @@ class Parser {
     }
 
     const latest = this.latest;
-    const activity = this.activity.result(turnLimit);
+    const activity = this.activity.result(turnLimit, includePrompts);
     return {
       start: this.start,
       latest: latest && {
@@ -550,7 +551,7 @@ async function resumeAt(entry: Entry, segments: Segment[], fromBase: boolean): P
   return size >= entry.open.offset ? at : -1;
 }
 
-async function update(threadId: string, path: string, turnLimit?: number): Promise<Rollout> {
+async function update(threadId: string, path: string, options: RolloutOptions): Promise<Rollout> {
   const { segments, fromBase } = await segmentChain(threadId, path);
   let entry = entries.get(threadId);
   let at = entry ? await resumeAt(entry, segments, fromBase) : -1;
@@ -579,12 +580,12 @@ async function update(threadId: string, path: string, turnLimit?: number): Promi
     throw error;
   }
   await entry.parser.settle();
-  return entry.parser.result(turnLimit);
+  return entry.parser.result(options);
 }
 
 // Requests for one thread run one at a time so they share a single resumable parse.
-export function readRollout(threadId: string, path: string, turnLimit?: number): Promise<Rollout> {
-  const run = (locks.get(threadId) ?? Promise.resolve()).catch(() => {}).then(() => update(threadId, path, turnLimit));
+export function readRollout(threadId: string, path: string, options: RolloutOptions = {}): Promise<Rollout> {
+  const run = (locks.get(threadId) ?? Promise.resolve()).catch(() => {}).then(() => update(threadId, path, options));
   locks.set(threadId, run);
   const release = () => {
     if (locks.get(threadId) === run) locks.delete(threadId);

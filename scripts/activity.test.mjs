@@ -27,7 +27,7 @@ async function rollout(t, lines) {
   const id = `context-fixture-${dir.split("-").at(-1)}`;
   const path = join(dir, "fixture.jsonl");
   await writeFile(path, record("session_meta", { base_instructions: "Instructions" }) + lines.join(""));
-  return { read: (limit) => readRollout(id, path, limit), append: (...more) => appendFile(path, more.join("")) };
+  return { read: (options) => readRollout(id, path, options), append: (...more) => appendFile(path, more.join("")) };
 }
 
 test("records turn growth, associates MCP and terminal outputs, and keeps text private", async (t) => {
@@ -114,8 +114,54 @@ test("loads older turns on request and keeps timing unavailable when the start i
   const recent = await f.read();
   assert.equal(recent.turnCount, 7);
   assert.deepEqual(recent.recentTurns.map(({ durationMs }) => durationMs), [6000, 5000, 4000, 3000, 2000]);
-  const all = await f.read(10);
+  const all = await f.read({ turnLimit: 10 });
   assert.equal(all.recentTurns.length, 7);
   assert.equal(all.recentTurns.at(-1).inputTokens, 900);
   assert.equal(all.recentTurns.at(-1).durationMs, null);
+});
+
+test("exposes bounded first-sentence titles and image labels only when requested", async (t) => {
+  const wrapper = "# Files mentioned by the user:\n\nprivate attachment metadata\n\n## My request:\n";
+  const f = await rollout(t, [
+    event("task_started", "text"),
+    message("user", "# AGENTS.md instructions\n<INSTRUCTIONS>private policy</INSTRUCTIONS>"),
+    message("user", "能显示每轮耗时吗？这句不会出现在标题。"),
+    message("user", "请忽略这一条后续指令作为标题。"),
+    event("task_complete", "text"),
+    event("task_started", "wrapped"),
+    item("message", { role: "user", content: [
+      { type: "input_text", text: wrapper + "Compare the two panels. Then report the difference." },
+      { type: "input_text", text: '<image name="private.png">' },
+      { type: "input_image", image_url: "data:image/png;base64,AAAA" },
+      { type: "input_text", text: "</image>" },
+    ] }),
+    event("task_complete", "wrapped"),
+    event("task_started", "image"),
+    item("message", { role: "user", content: [
+      { type: "input_text", text: wrapper },
+      { type: "input_text", text: '<image name="private.png">' },
+      { type: "input_image", image_url: "data:image/png;base64,AAAA" },
+      { type: "input_text", text: "</image>" },
+    ] }),
+    event("task_complete", "image"),
+    event("task_started", "compact"),
+    record("compacted", { replacement_history: [] }),
+    event("task_complete", "compact"),
+    event("task_started", "long"),
+    message("user", "长".repeat(150)),
+    event("task_complete", "long"),
+  ]);
+  const panel = await f.read({ includePrompts: true });
+  assert.deepEqual(panel.recentTurns.map(t => t.prompt), [
+    { kind: "text", title: "长".repeat(95) + "…" },
+    undefined,
+    { kind: "image" },
+    { kind: "text", title: "Compare the two panels." },
+    { kind: "text", title: "能显示每轮耗时吗？" },
+  ]);
+  assert.ok(panel.recentTurns[1].compacted);
+  assert.doesNotMatch(JSON.stringify(panel.recentTurns), /private|report the difference/);
+
+  const regular = await f.read();
+  assert.ok(regular.recentTurns.every(t => !Object.hasOwn(t, "prompt")));
 });

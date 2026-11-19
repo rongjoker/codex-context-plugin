@@ -155,13 +155,17 @@ const CHEVRON = `<svg class="chev" viewBox="0 0 16 16" width="14" height="14" fi
 
 // Every item, problem or not, is the same row: dot, title, value, ⓘ; it opens to its body.
 // The dot carries severity for problems and is hollow for the rest; explanations live in ⓘ.
-function row(id: string, kind: Problem["severity"] | "plain", title: string, value: string | null, body: () => string): string {
+function row(id: string, kind: Problem["severity"] | "plain", title: string, value: string | null, body: () => string, subtitle?: string): string {
   const open = openRow === id;
   const why = whyOpen === id;
+  const heading = `<span class="item-title">${esc(title)}</span>`;
+  const label = subtitle
+    ? `<span class="item-title-group" title="${esc(title)}">${heading}<span class="item-subtitle cost">${esc(subtitle)}</span></span>`
+    : heading;
   return `
     <li class="item ${kind} ${open ? "open" : ""}">
       <div class="item-head" role="button" tabindex="0" data-action="row" data-id="${esc(id)}" aria-expanded="${open}">
-        <i class="sev"></i><span class="item-title">${esc(title)}</span>${value ? `<span class="cost">${esc(value)}</span>` : ""}
+        <i class="sev"></i>${label}${value ? `<span class="cost">${esc(value)}</span>` : ""}
         <button class="info ${why ? "on" : ""}" type="button" data-action="why" data-id="${esc(id)}" aria-label="Why" aria-expanded="${why}">${INFO_ICON}</button>
         ${CHEVRON}
       </div>
@@ -378,15 +382,20 @@ function turnCost(t: ContextTurn): string {
   const elapsed = t.status === "in-progress" && t.startedAt != null
     ? `${durationText(Math.max(0, Date.now() - t.startedAt))} elapsed`
     : null;
-  const duration = t.durationMs != null ? durationText(t.durationMs) : elapsed;
-  const delta = t.inputDelta === null ? null : `${t.inputDelta > 0 ? "+" : t.inputDelta < 0 ? "−" : ""}${compact(Math.abs(t.inputDelta))}`;
-  return [duration, delta ?? (t.compacted ? "Compacted" : null)].filter(Boolean).join(" · ") || "—";
+  const duration = t.durationMs != null ? durationText(t.durationMs) : elapsed ?? "Duration unavailable";
+  if (t.inputDelta === null) return duration;
+  const sign = t.inputDelta > 0 ? "+" : t.inputDelta < 0 ? "−" : "";
+  return `${duration} · ${sign}${compact(Math.abs(t.inputDelta))} input tokens`;
 }
 
 function turnRow(t: ContextTurn): string {
-  return row(`turn-${t.number}`, "plain", `Turn ${t.number}`, turnCost(t), () => `
+  const turn = `Turn ${t.number}`;
+  const title = t.prompt?.kind === "text" ? t.prompt.title
+    : t.prompt?.kind === "image" ? "Image prompt"
+      : t.compacted ? "Context compaction" : turn;
+  return row(`turn-${t.number}`, "plain", title, null, () => `
     <div class="row">
-      <span class="sub small">${TURN_STATUS[t.status]}${t.compacted ? " · New context window" : ""}</span>
+      <span class="sub small">${turn} · ${TURN_STATUS[t.status]}${t.compacted ? " · New context window" : ""}</span>
       <span class="num small">${t.inputTokens === null ? "No input count" : `${compact(t.inputTokens)} input`}</span>
     </div>
     ${t.startedAt != null ? `<div class="sub small">Started ${esc(turnTime.format(t.startedAt))}</div>` : ""}
@@ -398,7 +407,7 @@ function turnRow(t: ContextTurn): string {
       </li>`).join("")}
     </ul>` : `<div class="sub small">No countable text was recorded for this turn.</div>`}
     ${t.skippedItems ? `<div class="sub small">${t.skippedItems} oversized record${t.skippedItems === 1 ? "" : "s"} skipped.</div>` : ""}
-  `);
+  `, turnCost(t));
 }
 
 function activitySection(s: ContextSnapshot): string {
@@ -819,7 +828,7 @@ setInterval(() => {
   const turn = state?.recentTurns?.[0];
   if (state?.view !== "panel" || document.visibilityState !== "visible"
     || turn?.status !== "in-progress" || turn.startedAt == null) return;
-  const cost = root.querySelector<HTMLElement>(`[data-id="turn-${turn.number}"][data-action="row"] .cost`);
+  const cost = root.querySelector<HTMLElement>(`[data-id="turn-${turn.number}"][data-action="row"] .item-subtitle`);
   if (cost) cost.textContent = turnCost(turn);
 }, 1000);
 document.addEventListener("visibilitychange", wake);

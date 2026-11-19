@@ -126,7 +126,8 @@ export async function contextSnapshot(view: View, threadId: string | undefined, 
   let rollout: Rollout | null = null;
   if (row?.rollout_path) {
     try {
-      rollout = await readRollout(row.id, row.rollout_path, turnLimit);
+      // Only an app-only panel with an explicit thread can receive prompt titles.
+      rollout = await readRollout(row.id, row.rollout_path, { turnLimit, includePrompts: view === "panel" && row.id === threadId });
       if (rollout.historyMissing) errors.push("The start of this thread's history is missing, so first-request figures are unavailable.");
     } catch (error) {
       errors.push(`Could not read the thread's rollout: ${message(error)}`);

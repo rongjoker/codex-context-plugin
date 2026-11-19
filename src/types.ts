@@ -12,6 +12,7 @@ export type ContextItem = {
 export type ContextTurn = {
   number: number;
   status: "in-progress" | "finished" | "interrupted" | "incomplete";
+  prompt?: { kind: "text"; title: string } | { kind: "image" };
   startedAt?: number | null; // Unix milliseconds
   durationMs?: number | null;
   inputTokens: number | null;

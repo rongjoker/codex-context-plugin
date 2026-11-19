@@ -22,6 +22,7 @@
     {
      "number": 20,
      "status": "in-progress",
+     "prompt": { "kind": "text", "title": "为什么每轮只显示编号，能不能看到当时问了什么？" },
      "inputTokens": null,
      "inputDelta": null,
      "compacted": false,
@@ -31,6 +32,7 @@
     {
      "number": 19,
      "status": "finished",
+     "prompt": { "kind": "text", "title": "Can you review the onboarding flow and find where the session starts to grow?" },
      "startedAt": 1767268800000,
      "durationMs": 192400,
      "inputTokens": 67321,
@@ -47,6 +49,7 @@
     {
      "number": 18,
      "status": "finished",
+     "prompt": { "kind": "image" },
      "durationMs": 43000,
      "inputTokens": 54889,
      "inputDelta": null,
@@ -67,6 +70,7 @@
     {
      "number": 16,
      "status": "interrupted",
+     "prompt": { "kind": "text", "title": "检查登录流程和错误反馈。" },
      "durationMs": 78000,
      "inputTokens": 92000,
      "inputDelta": null,

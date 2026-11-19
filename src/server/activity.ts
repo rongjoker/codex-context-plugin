@@ -21,6 +21,28 @@ type TurnEvent = {
 const DEFAULT_TURN_LIMIT = 5;
 const LARGEST_ITEMS = 5;
 const PENDING_CALLS = 128;
+const PROMPT_TITLE_LENGTH = 96;
+const sentences = new Intl.Segmenter(undefined, { granularity: "sentence" });
+
+function promptPreview(item: LoggedItem, content: unknown): ContextTurn["prompt"] {
+  for (const part of Array.isArray(content) ? content : []) {
+    if (typeof part?.text !== "string") continue;
+    let text = part.text.trim();
+    if (text.startsWith("# Files mentioned by the user:")) {
+      const heading = /^## My request:[ \t]*\r?$/m.exec(text);
+      if (!heading) continue;
+      text = text.slice(heading.index + heading[0].length).trim();
+    }
+    if (!text || /^<\/?image(?=[\s>])/.test(text) || text.startsWith("<send_user_message_question_reply>")) continue;
+    const line = text.split(/\r?\n/, 1)[0].replace(/\s+/g, " ").trim().slice(0, PROMPT_TITLE_LENGTH * 2 + 2);
+    const sentence = sentences.segment(line)[Symbol.iterator]().next().value?.segment.trim() ?? "";
+    if (!sentence) continue;
+    const chars = Array.from(sentence);
+    const title = chars.length > PROMPT_TITLE_LENGTH ? `${chars.slice(0, PROMPT_TITLE_LENGTH - 1).join("").trimEnd()}…` : sentence;
+    return { kind: "text", title };
+  }
+  if (Array.isArray(item.content) && item.content.some((part) => part?.type === "input_image")) return { kind: "image" };
+}
 
 function validTime(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value) && value >= 0;
@@ -90,7 +112,16 @@ export class RecentActivity {
   }
 
   message(item: LoggedItem, content = item.content): void {
-    if (item.role === "user") this.add({ kind: "user", label: "User message", tokens: textTokens(content) });
+    if (item.role === "user") {
+      if (!this.active?.prompt) {
+        const prompt = promptPreview(item, content);
+        if (prompt) {
+          if (!this.active) this.start();
+          this.active!.prompt = prompt;
+        }
+      }
+      this.add({ kind: "user", label: "User message", tokens: textTokens(content) });
+    }
     if (item.role === "assistant") this.add({ kind: "assistant", label: "Assistant response", tokens: textTokens(content) });
   }
 
@@ -143,17 +174,21 @@ export class RecentActivity {
       if (endedAt !== null && endedAt >= turn.startedAt) turn.durationMs = endedAt - turn.startedAt;
     }
     if (turn.inputTokens !== null) this.previousInput = turn.inputTokens;
-    if (turn.inputTokens === null && !turn.compacted && !turn.largest.length && !turn.skippedItems
+    if (turn.inputTokens === null && !turn.prompt && !turn.compacted && !turn.largest.length && !turn.skippedItems
       && turn.startedAt == null && turn.durationMs == null) return;
     this.finished.push(turn);
   }
 
-  result(limit = DEFAULT_TURN_LIMIT): { turns: ContextTurn[]; count: number } {
+  result(limit = DEFAULT_TURN_LIMIT, includePrompts = false): { turns: ContextTurn[]; count: number } {
     const reserved = this.active ? 1 : 0;
     const turns = this.finished.slice(Math.max(0, this.finished.length - (limit - reserved))).reverse();
     if (this.active) turns.unshift(this.active);
     return {
-      turns: turns.map((turn) => ({ ...turn, largest: [...turn.largest] })),
+      turns: turns.map(({ prompt, ...turn }) => ({
+        ...turn,
+        largest: [...turn.largest],
+        ...(includePrompts && prompt ? { prompt } : {}),
+      })),
       count: this.finished.length + reserved,
     };
   }
