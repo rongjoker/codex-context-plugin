@@ -78,8 +78,7 @@
       .num { white-space: nowrap; font-variant-numeric: tabular-nums; }
       .notice { font-size: 12px; color: var(--fg-2); }
 
-      /* Category colors for the breakdown: conversation in the text color, the fixed
-         parts in distinct hues, free space in the track color. */
+      /* Category colors for the breakdown legend. */
       :root {
         --c-conv: var(--fg);
         --c-tools: #3b82f6;
@@ -106,7 +105,7 @@
       .chart { position: relative; flex: none; line-height: 0; }
       .donut circle { fill: none; stroke-width: 16; }
       .donut .ring { stroke: var(--track); }
-      .donut .arc { stroke: var(--c); }
+      .donut .arc { stroke: var(--fg); }
       .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.2; text-align: center; }
       .center b { font-size: 20px; font-weight: var(--font-weight-semibold, 600); letter-spacing: -0.02em; }
       .center span { font-size: 11px; color: var(--fg-2); }

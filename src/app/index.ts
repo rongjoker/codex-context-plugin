@@ -86,23 +86,11 @@ function slices(s: ContextSnapshot): Slice[] {
   ].filter((slice) => slice.tokens > 0);
 }
 
-// Ring of what fills the context: one arc per category.
-function donut(parts: Slice[], size: number): string {
-  const whole = parts.reduce((sum, p) => sum + p.tokens, 0) || 1;
-  const r = 50;
-  const c = 2 * Math.PI * r;
-  const gap = parts.length > 1 ? 1.2 : 0;
-  let offset = 0;
-  const arcs = parts
-    .map((part) => {
-      const length = (part.tokens / whole) * c;
-      const drawn = Math.max(0.6, length - gap);
-      const arc = `<circle class="arc c-${part.key}" r="${r}" cx="60" cy="60" stroke-dasharray="${drawn.toFixed(2)} ${(c - drawn).toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}"><title>${esc(part.label)}: ${compact(part.tokens)}</title></circle>`;
-      offset += length;
-      return arc;
-    })
-    .join("");
-  return `<svg class="donut" width="${size}" height="${size}" viewBox="0 0 120 120" role="img" aria-label="Context breakdown"><g transform="rotate(-90 60 60)"><circle class="ring" r="${r}" cx="60" cy="60"></circle>${arcs}</g></svg>`;
+function usageRing(used: number | null, size: number): string {
+  const arcs = used === null ? "" : `
+    <circle class="ring" r="50" cx="60" cy="60"></circle>
+    <circle class="arc" r="50" cx="60" cy="60" pathLength="100" stroke-dasharray="${Math.min(used, 100)} 100" transform="rotate(-90 60 60)"></circle>`;
+  return `<svg class="donut" width="${size}" height="${size}" viewBox="0 0 120 120" aria-hidden="true">${arcs}</svg>`;
 }
 
 // The "why" popover id for the compaction estimate under the chart.
@@ -111,9 +99,9 @@ const COMPACTION = "compaction";
 function overview(s: ContextSnapshot, size: number): string {
   const n = s.now;
   if (!n) return `<section class="block"><div class="notice">No model requests recorded for this thread yet.</div></section>`;
-  const window = s.contextWindow ?? n.inputTokens;
+  const window = s.contextWindow ?? 0;
   const parts = slices(s);
-  const used = Math.round(pct(n.inputTokens, window));
+  const used = window > 0 ? (n.inputTokens / window) * 100 : null;
   const legend = parts
     .map(
       (p) => `
@@ -133,8 +121,8 @@ function overview(s: ContextSnapshot, size: number): string {
   return `
     <section class="block overview">
       <div class="chart">
-        ${donut(parts, size)}
-        <div class="center"><b>${compact(n.inputTokens)}</b><span>${s.contextWindow ? `${used}% of ${compact(window)}` : "in context"}</span></div>
+        ${usageRing(used, size)}
+        <div class="center"><b>${compact(n.inputTokens)}</b>${used === null ? "<span>in context</span>" : `<span>${Math.round(used)}% of ${compact(window)}</span><span>used</span>`}</div>
       </div>
       <div class="side">
         <ul class="legend">${legend}${free}</ul>
